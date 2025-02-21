@@ -1,4 +1,5 @@
 <template>
+  <Head title="Home" />
   <div class="min-h-screen bg-gray-50">
     <!-- Header/Navigation -->
     <header class="bg-gray-200 shadow-sm">
@@ -338,6 +339,7 @@ import {
   SparklesIcon,
   HeartIcon
 } from '@heroicons/vue/24/outline'
+import { Head } from '@inertiajs/vue3'
 
 export default {
   name: 'HomePage',
@@ -347,7 +349,8 @@ export default {
     SwatchIcon,
     HomeIcon,
     SparklesIcon,
-    HeartIcon
+    HeartIcon,
+    Head
   },
   data() {
     return {
