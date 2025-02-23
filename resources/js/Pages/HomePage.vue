@@ -1,59 +1,7 @@
 <template>
   <Head title="Home" />
+  <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
-    <!-- Header/Navigation -->
-    <header class="bg-gray-200 shadow-sm">
-      <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main navigation">
-        <div class="flex justify-between h-16 items-center">
-          <!-- Logo -->
-          <div class="flex-shrink-0">
-            <a href="/" class="flex items-center" aria-label="Home">
-              <span class="text-xl font-bold text-gray-900">MickyesBarber</span>
-            </a>
-          </div>
-
-          <!-- Mobile menu button -->
-          <button
-            @click="mobileMenuOpen = !mobileMenuOpen"
-            class="md:hidden rounded-md p-2 text-gray-600 hover:bg-gray-300"
-            aria-expanded="false"
-            :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
-          >
-            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path v-if="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-          <!-- Desktop Navigation -->
-          <div class="hidden md:flex md:items-center md:space-x-8">
-            <a href="#" class="text-gray-900 hover:text-gray-600 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">Products</a>
-            <a href="#" class="text-gray-900 hover:text-gray-600 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">Services</a>
-            <a href="#" class="text-gray-900 hover:text-gray-600 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">About</a>
-            <a href="#" class="text-gray-900 hover:text-gray-600 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">Contact</a>
-            <a href="/login" class="text-gray-900 hover:text-gray-600 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">Login</a>
-            <a href="/register" class="text-gray-900 hover:text-gray-600 hover:bg-gray-300 px-3 py-2 rounded-md text-sm font-medium">Register</a>
-          </div>
-        </div>
-
-        <!-- Mobile Navigation -->
-        <div
-          v-show="mobileMenuOpen"
-          class="md:hidden"
-          aria-label="Mobile navigation"
-        >
-          <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-300">Products</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-300">Services</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-300">About</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-300">Contact</a>
-            <a href="/login" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-300">Login</a>
-            <a href="/register" class="block px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:bg-gray-300">Register</a>
-          </div>
-        </div>
-      </nav>
-    </header>
-
     <!-- Hero Section -->
     <main>
       <section class="relative bg-white overflow-hidden h-[60vh]">
@@ -270,20 +218,83 @@
       </section>
 
       <!-- Features Section -->
-      <section class="py-12 bg-gray-50" aria-labelledby="features-heading">
+      <section class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 id="features-heading" class="text-3xl font-extrabold text-gray-900 text-center mb-12">
-            Our Features
+          <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">
+            Transformations
           </h2>
-          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <!-- Feature cards -->
-            <div v-for="(feature, index) in features" :key="index"
-                 class="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
-              <div class="text-indigo-600 mb-4">
-                <component :is="feature.icon" class="h-8 w-8" />
+
+          <div class="relative max-w-4xl mx-auto">
+            <!-- Carousel Container -->
+            <div class="relative h-[400px] overflow-hidden rounded-lg shadow-xl">
+              <!-- Slides -->
+              <div
+                v-for="(slide, index) in slides"
+                :key="index"
+                class="absolute inset-0 transition-opacity duration-500"
+                :class="{ 'opacity-0': currentSlide !== index }"
+              >
+                <div class="flex h-full">
+                  <!-- Before Image -->
+                  <div class="w-1/2 relative">
+                    <img
+                      :src="slide.before"
+                      :alt="'Before ' + slide.description"
+                      class="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div class="absolute inset-0 bg-black bg-opacity-30">
+                      <span class="absolute top-4 left-4 text-white text-xl font-bold">Before</span>
+                    </div>
+                  </div>
+
+                  <!-- After Image -->
+                  <div class="w-1/2 relative">
+                    <img
+                      :src="slide.after"
+                      :alt="'After ' + slide.description"
+                      class="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div class="absolute inset-0 bg-black bg-opacity-30">
+                      <span class="absolute top-4 right-4 text-white text-xl font-bold">After</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <div class="absolute bottom-0 inset-x-0 bg-black bg-opacity-50 text-white p-4 text-center">
+                  <p class="text-lg font-semibold">{{ slide.description }}</p>
+                </div>
               </div>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">{{ feature.title }}</h3>
-              <p class="text-gray-500">{{ feature.description }}</p>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <button
+              @click="prevSlide"
+              class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <button
+              @click="nextSlide"
+              class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 bg-white p-2 rounded-full shadow-lg hover:bg-gray-100 transition-colors duration-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            <!-- Slide Indicators -->
+            <div class="absolute -bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              <button
+                v-for="(_, index) in slides"
+                :key="index"
+                @click="currentSlide = index"
+                class="w-3 h-3 rounded-full transition-colors duration-200"
+                :class="currentSlide === index ? 'bg-green-600' : 'bg-gray-300'"
+              />
             </div>
           </div>
         </div>
@@ -330,7 +341,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from 'vue';
+import { Head } from '@inertiajs/vue3';
 import {
   ScissorsIcon,
   UserGroupIcon,
@@ -339,40 +352,38 @@ import {
   SparklesIcon,
   HeartIcon
 } from '@heroicons/vue/24/outline'
-import { Head } from '@inertiajs/vue3'
+import Navigation from '@/Components/Navigation.vue';
 
-export default {
-  name: 'HomePage',
-  components: {
-    ScissorsIcon,
-    UserGroupIcon,
-    SwatchIcon,
-    HomeIcon,
-    SparklesIcon,
-    HeartIcon,
-    Head
-  },
-  data() {
-    return {
-      mobileMenuOpen: false,
-      features: [
-        {
-          title: 'Easy Integration',
-          description: 'Seamlessly integrate with your existing systems and workflows.',
-          icon: 'PuzzlePieceIcon'
-        },
-        {
-          title: 'Secure & Reliable',
-          description: 'Enterprise-grade security with 99.9% uptime guarantee.',
-          icon: 'ShieldCheckIcon'
-        },
-        {
-          title: '24/7 Support',
-          description: 'Round-the-clock support from our dedicated team.',
-          icon: 'PhoneIcon'
-        }
-      ]
+// Define props first
+const props = defineProps({
+    transformations: {
+        type: Array,
+        required: true
     }
-  }
-}
+});
+
+// Then use props in other declarations
+const currentSlide = ref(0);
+const slides = props.transformations?.slice(0, 3).map(transformation => ({
+    before: transformation.before_image,
+    after: transformation.after_image,
+    description: transformation.description
+})) || [];
+
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % slides.length;
+};
+
+const prevSlide = () => {
+  currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length;
+};
+
+// Auto-advance slides
+onMounted(() => {
+    console.log('Transformations:', props.transformations);
+    console.log('Generated slides:', slides);
+    setInterval(() => {
+        currentSlide.value = (currentSlide.value + 1) % slides.length;
+    }, 5000);
+});
 </script>
