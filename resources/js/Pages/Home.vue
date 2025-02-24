@@ -13,50 +13,22 @@ const props = defineProps({
     reviews: Array
 });
 
-const currentTransformationIndex = ref(0);
+const currentSlide = ref(0);
 
-// Add console logging
+// Use the full URLs directly from the transformations data
+const slides = props.transformations?.slice(0, 3).map(transformation => ({
+    before: transformation.before_image,  // Already contains full URL
+    after: transformation.after_image,    // Already contains full URL
+    description: transformation.description
+})) || [];
+
+// Add debug logging
 onMounted(() => {
-    console.log('Transformations:', props.transformations);
-    if (props.transformations.length > 0) {
-        console.log('First transformation:', props.transformations[0]);
-        console.log('Before image URL:', props.transformations[0].before_image);
-        console.log('After image URL:', props.transformations[0].after_image);
-        setInterval(nextTransformation, 5000);
-    }
+    console.log('Slides array:', slides);
+    setInterval(() => {
+        currentSlide.value = (currentSlide.value + 1) % slides.length;
+    }, 5000);
 });
-
-const nextTransformation = () => {
-    if (props.transformations.length > 0) {
-        currentTransformationIndex.value = (currentTransformationIndex.value + 1) % props.transformations.length;
-    }
-};
-
-const prevTransformation = () => {
-    if (props.transformations.length > 0) {
-        currentTransformationIndex.value = currentTransformationIndex.value === 0
-            ? props.transformations.length - 1
-            : currentTransformationIndex.value - 1;
-    }
-};
-
-// Debug log the raw transformations
-console.log('Raw transformations:', props.transformations);
-
-const slides = props.transformations?.slice(0, 3).map(transformation => {
-    // Log each transformation's paths
-    console.log('Before image path:', transformation.before_image);
-    console.log('After image path:', transformation.after_image);
-
-    return {
-        before: `/${transformation.before_image}`,
-        after: `/${transformation.after_image}`,
-        description: transformation.description
-    };
-}) || [];
-
-// Log final slides array
-console.log('Final slides:', slides);
 </script>
 
 <template>
@@ -86,12 +58,12 @@ console.log('Final slides:', slides);
 
                 <!-- Debug info -->
                 <div class="mb-4 p-4 bg-gray-100 rounded-lg">
-                    <p>Number of transformations: {{ transformations.length }}</p>
-                    <p>Current index: {{ currentTransformationIndex }}</p>
-                    <p v-if="transformations.length > 0">
+                    <p>Number of slides: {{ slides.length }}</p>
+                    <p>Current slide index: {{ currentSlide }}</p>
+                    <p v-if="slides.length > 0">
                         Current URLs:<br>
-                        Before: {{ transformations[currentTransformationIndex].before_image }}<br>
-                        After: {{ transformations[currentTransformationIndex].after_image }}
+                        Before: {{ slides[currentSlide].before }}<br>
+                        After: {{ slides[currentSlide].after }}
                     </p>
                 </div>
 
@@ -101,19 +73,26 @@ console.log('Final slides:', slides);
                         <div class="relative h-[400px] overflow-hidden rounded-lg shadow-xl">
                             <!-- Add debugging info -->
                             <div class="absolute top-0 left-0 z-50 bg-black bg-opacity-50 text-white p-2">
-                                Current slide path: {{ slides[currentTransformationIndex]?.before }}
+                                <p>Number of slides: {{ slides.length }}</p>
+                                <p>Current slide index: {{ currentSlide }}</p>
+                                <p v-if="slides.length > 0">
+                                    Current URLs:<br>
+                                    Before: {{ slides[currentSlide].before }}<br>
+                                    After: {{ slides[currentSlide].after }}
+                                </p>
                             </div>
 
                             <div v-for="(slide, index) in slides" :key="index"
                                 class="absolute inset-0 transition-opacity duration-500"
-                                :class="{ 'opacity-0': currentTransformationIndex !== index }">
+                                :class="{ 'opacity-0': currentSlide !== index }">
                                 <div class="flex h-full">
                                     <!-- Before Image -->
                                     <div class="w-1/2 relative">
                                         <img :src="slide.before"
                                              :alt="'Before ' + slide.description"
                                              class="absolute inset-0 w-full h-full object-cover"
-                                             @error="console.log('Error loading before image:', slide.before)">
+                                             @error="console.log('Error loading before image:', slide.before)"
+                                             @load="console.log('Before image loaded:', slide.before)">
                                         <div class="absolute inset-0 bg-black bg-opacity-30">
                                             <span class="absolute top-4 left-4 text-white text-xl font-bold">Before</span>
                                         </div>
