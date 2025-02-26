@@ -14,17 +14,18 @@ class Booking extends Model
         'barber_id',
         'booking_date',
         'booking_time',
-        'status',
         'service_price',
         'deposit_amount',
+        'status',
         'payment_status',
-        'payment_id',
         'notes'
     ];
 
     protected $casts = [
         'booking_date' => 'date',
-        'booking_time' => 'datetime:H:i',
+        'booking_time' => 'datetime',
+        'service_price' => 'decimal:2',
+        'deposit_amount' => 'decimal:2',
     ];
 
     public function user()

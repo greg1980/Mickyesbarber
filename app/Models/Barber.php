@@ -10,15 +10,18 @@ class Barber extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'name',
         'bio',
         'profile_photo',
         'years_of_experience',
-        'specialties'
+        'specialties',
+        'is_available'
     ];
 
     protected $casts = [
-        'specialties' => 'array'
+        'specialties' => 'array',
+        'is_available' => 'boolean'
     ];
 
     public function bookings()

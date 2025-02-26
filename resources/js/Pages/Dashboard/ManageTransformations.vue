@@ -9,6 +9,14 @@ const props = defineProps({
     transformations: {
         type: Array,
         default: () => []
+    },
+    bookings: {
+        type: Array,
+        default: () => []
+    },
+    barbers: {
+        type: Array,
+        default: () => []
     }
 });
 
@@ -30,21 +38,17 @@ watch(() => usePage().props.flash, (newFlash) => {
 }, { deep: true });
 
 const form = useForm({
-    before_image: null,
-    after_image: null,
-    description: ''
+    before_photo: null,
+    after_photo: null,
+    rating: '',
+    review: '',
+    haircut_style: '',
+    booking_id: ''
 });
 
 const handleSubmit = () => {
-    console.log('Form submitted');
-    console.log('Form data:', {
-        before_image: form.before_image,
-        after_image: form.after_image,
-        description: form.description
-    });
-
-    if (!form.before_image || !form.after_image || !form.description.trim()) {
-        messageText.value = 'Please fill in all fields';
+    if (!form.before_photo || !form.after_photo || !form.haircut_style || !form.rating) {
+        messageText.value = 'Please fill in all required fields';
         messageType.value = 'error';
         showMessage.value = true;
         setTimeout(() => {
@@ -58,7 +62,6 @@ const handleSubmit = () => {
     form.post(route('transformations.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Upload successful');
             form.reset();
             isSubmitting.value = false;
             messageText.value = 'Transformation uploaded successfully!';
@@ -85,12 +88,12 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="Manage Transformations" />
+    <Head title="My Transformations" />
 
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Manage Transformations
+                My Transformations
             </h2>
         </template>
 
@@ -119,32 +122,78 @@ onMounted(() => {
 
                 <!-- Form -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Transformation</h3>
                     <form @submit.prevent="handleSubmit" class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Before Image</label>
+                            <label class="block text-sm font-medium text-gray-700">Select Booking *</label>
+                            <select
+                                v-model="form.booking_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                required
+                            >
+                                <option value="">Select a completed booking</option>
+                                <option v-for="booking in bookings" :key="booking.id" :value="booking.id">
+                                    {{ new Date(booking.booking_date).toLocaleDateString() }} - {{ booking.booking_time }} with {{ booking.barber.name }}
+                                </option>
+                            </select>
+                            <p class="mt-1 text-sm text-gray-500">Only completed bookings are available for review</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Before Photo *</label>
                             <input
                                 type="file"
-                                @input="form.before_image = $event.target.files[0]"
+                                @input="form.before_photo = $event.target.files[0]"
                                 accept="image/*"
                                 class="mt-1 block w-full"
+                                required
                             >
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">After Image</label>
+                            <label class="block text-sm font-medium text-gray-700">After Photo *</label>
                             <input
                                 type="file"
-                                @input="form.after_image = $event.target.files[0]"
+                                @input="form.after_photo = $event.target.files[0]"
                                 accept="image/*"
                                 class="mt-1 block w-full"
+                                required
                             >
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Description</label>
+                            <label class="block text-sm font-medium text-gray-700">Haircut Style *</label>
+                            <input
+                                type="text"
+                                v-model="form.haircut_style"
+                                placeholder="e.g., Fade, Crew Cut, etc."
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                required
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Rating *</label>
+                            <div class="mt-1 flex items-center space-x-2">
+                                <template v-for="star in 5" :key="star">
+                                    <button
+                                        type="button"
+                                        @click="form.rating = star"
+                                        class="text-2xl focus:outline-none"
+                                        :class="star <= form.rating ? 'text-yellow-400' : 'text-gray-300'"
+                                    >
+                                        ★
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Review</label>
                             <textarea
-                                v-model="form.description"
+                                v-model="form.review"
                                 rows="3"
+                                placeholder="Share your experience with the haircut..."
                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                             ></textarea>
                         </div>
@@ -155,7 +204,7 @@ onMounted(() => {
                                 :disabled="isSubmitting"
                                 class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 disabled:opacity-50"
                             >
-                                {{ isSubmitting ? 'Uploading...' : 'Upload Transformation' }}
+                                {{ isSubmitting ? 'Uploading...' : 'Submit Review' }}
                             </button>
                         </div>
                     </form>
@@ -169,6 +218,24 @@ onMounted(() => {
                         class="bg-white rounded-lg shadow-lg overflow-hidden"
                     >
                         <div class="p-4">
+                            <!-- Admin Info -->
+                            <div v-if="$page.props.auth.user.is_admin" class="mb-4 border-b pb-2">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">Customer:</span>
+                                        <span class="ml-2 text-sm text-gray-600">{{ transformation.user.name }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-700">Date:</span>
+                                        <span class="ml-2 text-sm text-gray-600">{{ new Date(transformation.created_at).toLocaleDateString() }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="text-sm font-medium text-gray-700">Barber:</span>
+                                    <span class="ml-2 text-sm text-gray-600">{{ transformation.barber.name }}</span>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <h4 class="text-sm font-medium text-gray-500 mb-2">Before</h4>
@@ -187,12 +254,25 @@ onMounted(() => {
                                     >
                                 </div>
                             </div>
-                            <p class="mt-4 text-gray-600">{{ transformation.description }}</p>
+                            <div class="mt-4">
+                                <p class="text-gray-600">{{ transformation.review }}</p>
+                                <div class="mt-2 flex items-center">
+                                    <span class="text-sm font-medium text-gray-700">Style:</span>
+                                    <span class="ml-2 text-sm text-gray-600">{{ transformation.haircut_style }}</span>
+                                </div>
+                                <div class="mt-1 flex items-center">
+                                    <span class="text-sm font-medium text-gray-700">Rating:</span>
+                                    <div class="ml-2 flex">
+                                        <span v-for="n in transformation.rating" :key="n" class="text-yellow-400">★</span>
+                                        <span v-for="n in 5 - transformation.rating" :key="n + transformation.rating" class="text-gray-300">★</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div v-else class="text-center text-gray-500 py-8">
-                    No transformations added yet.
+                    {{ $page.props.auth.user.is_admin ? 'No transformations found.' : 'You haven\'t added any transformations yet.' }}
                 </div>
             </div>
         </div>

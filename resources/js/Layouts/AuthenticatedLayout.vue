@@ -1,11 +1,12 @@
 <script setup>
 import { ref } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
+import ApplicationLogo from '@/components/ApplicationLogo.vue';
+import Dropdown from '@/components/Dropdown.vue';
+import DropdownLink from '@/components/DropdownLink.vue';
+import NavLink from '@/components/NavLink.vue';
+import ResponsiveNavLink from '@/components/ResponsiveNavLink.vue';
 
 const showingNavigationDropdown = ref(false);
 </script>
@@ -41,10 +42,25 @@ const showingNavigationDropdown = ref(false);
                                     Dashboard
                                 </NavLink>
                                 <NavLink
+                                    v-if="!$page.props.auth.user.isBarber"
+                                    :href="route('barber.register')"
+                                    :active="route().current('barber.register')"
+                                >
+                                    Become a Barber
+                                </NavLink>
+                                <NavLink
+                                    v-if="!$page.props.auth.user.isBarber || $page.props.auth.user.is_admin"
                                     :href="route('transformations.index')"
                                     :active="route().current('transformations.index')"
                                 >
-                                    Manage Transformations
+                                    {{ $page.props.auth.user.is_admin ? 'View Transformations' : 'My Transformations' }}
+                                </NavLink>
+                                <NavLink
+                                    v-if="$page.props.auth.user.is_admin"
+                                    :href="route('admin.dashboard')"
+                                    :active="route().current('admin.*')"
+                                >
+                                    Admin Panel
                                 </NavLink>
                             </div>
                         </div>
@@ -152,6 +168,27 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('dashboard')"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="!$page.props.auth.user.isBarber"
+                            :href="route('barber.register')"
+                            :active="route().current('barber.register')"
+                        >
+                            Become a Barber
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="!$page.props.auth.user.isBarber || $page.props.auth.user.is_admin"
+                            :href="route('transformations.index')"
+                            :active="route().current('transformations.index')"
+                        >
+                            {{ $page.props.auth.user.is_admin ? 'View Transformations' : 'My Transformations' }}
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="$page.props.auth.user.is_admin"
+                            :href="route('admin.dashboard')"
+                            :active="route().current('admin.*')"
+                        >
+                            Admin Panel
                         </ResponsiveNavLink>
                     </div>
 

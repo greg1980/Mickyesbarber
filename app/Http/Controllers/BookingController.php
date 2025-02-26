@@ -10,6 +10,10 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingCancelled;
 use App\Models\Barber;
+use App\Mail\BookingConfirmation;
+use App\Mail\BookingCancellation;
+use App\Mail\BookingRescheduled;
+use App\Events\BookingUpdated;
 
 class BookingController extends Controller
 {
@@ -18,21 +22,48 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'barber_id' => 'required|exists:barbers,id',
-            'booking_date' => 'required|date',
-            'booking_time' => 'required',
-            'service_price' => 'required|numeric',
-            'deposit_amount' => 'required|numeric',
-        ]);
+        try {
+            $validated = $request->validate([
+                'barber_id' => 'required|exists:barbers,id',
+                'booking_date' => 'required|date',
+                'booking_time' => 'required',
+                'service_price' => 'required|numeric',
+                'deposit_amount' => 'required|numeric',
+            ]);
 
-        $booking = Booking::create([
-            'user_id' => auth()->id(),
-            ...$validated,
-            'status' => 'pending_payment',
-        ]);
+            // Convert time from 12-hour to 24-hour format for storage
+            $booking_time = Carbon::createFromFormat('g:i A', $validated['booking_time'])->format('H:i:s');
 
-        return redirect()->route('booking.payment', $booking);
+            $booking = Booking::create([
+                'user_id' => auth()->id(),
+                'barber_id' => $validated['barber_id'],
+                'booking_date' => $validated['booking_date'],
+                'booking_time' => $booking_time,
+                'service_price' => $validated['service_price'],
+                'deposit_amount' => $validated['deposit_amount'],
+                'status' => 'pending_payment',
+            ]);
+
+            // Get updated booked slots for the date
+            $bookedSlots = $this->getBookedSlots($validated['booking_date']);
+
+            // Broadcast the booking creation
+            broadcast(new BookingUpdated($booking, $bookedSlots, 'created'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Booking created successfully!',
+                'booking' => $booking,
+                'payment_url' => route('booking.payment', $booking->id)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Booking creation failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create booking. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function cancelBooking($id)
@@ -49,8 +80,24 @@ class BookingController extends Controller
         // If cancellation is before appointment day
         if ($bookingDate->isAfter($today)) {
             $booking->update(['status' => 'cancelled']);
+
+            // Send cancellation email to customer
+            Mail::to($booking->user->email)->send(new BookingCancellation($booking));
+
+            // Send cancellation email to barber
+            if ($booking->barber && $booking->barber->user) {
+                Mail::to($booking->barber->user->email)->send(new BookingCancellation($booking));
+            }
+
             // Process refund of deposit
             $this->processRefund($booking);
+
+            // Get updated booked slots for the date
+            $bookedSlots = $this->getBookedSlots($booking->booking_date);
+
+            // Broadcast the cancellation
+            broadcast(new BookingUpdated($booking, $bookedSlots, 'cancelled'));
+
             return back()->with('success', 'Booking cancelled and deposit will be refunded.');
         }
 
@@ -59,20 +106,74 @@ class BookingController extends Controller
 
     public function rescheduleBooking(Request $request, $id)
     {
-        $booking = Auth::user()->bookings()->findOrFail($id);
+        try {
+            $booking = Auth::user()->bookings()->findOrFail($id);
 
-        $validated = $request->validate([
-            'new_date' => 'required|date|after:today',
-            'new_time' => 'required',
-        ]);
+            $validated = $request->validate([
+                'new_date' => 'required|date|after:today',
+                'new_time' => 'required',
+            ]);
 
-        $booking->update([
-            'booking_date' => $validated['new_date'],
-            'booking_time' => $validated['new_time'],
-            'status' => 'rescheduled',
-        ]);
+            // Convert new time from 12-hour to 24-hour format for storage
+            $new_time = Carbon::createFromFormat('g:i A', $validated['new_time'])->format('H:i:s');
 
-        return back()->with('success', 'Appointment rescheduled successfully.');
+            // Check if the new time slot is available
+            $existingBooking = Booking::where('booking_date', $validated['new_date'])
+                ->where('booking_time', $new_time)
+                ->whereNotIn('status', ['cancelled'])
+                ->first();
+
+            if ($existingBooking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This time slot is no longer available. Please select another time.'
+                ], 422);
+            }
+
+            // Store old datetime for email
+            $oldDateTime = [
+                'date' => $booking->booking_date,
+                'time' => Carbon::parse($booking->booking_time)->format('g:i A')
+            ];
+
+            $booking->update([
+                'booking_date' => $validated['new_date'],
+                'booking_time' => $new_time,
+                'status' => 'rescheduled',
+            ]);
+
+            // Send rescheduling confirmation email to customer
+            Mail::to($booking->user->email)->send(new BookingRescheduled($booking, $oldDateTime));
+
+            // Send rescheduling notification to barber
+            if ($booking->barber && $booking->barber->user) {
+                Mail::to($booking->barber->user->email)->send(new BookingRescheduled($booking, $oldDateTime));
+            }
+
+            // Get updated booked slots for both old and new dates
+            $oldDateBookedSlots = $this->getBookedSlots($oldDateTime['date']);
+            $newDateBookedSlots = $this->getBookedSlots($validated['new_date']);
+
+            // Broadcast for both dates
+            broadcast(new BookingUpdated($booking, $oldDateBookedSlots, 'rescheduled_from'));
+            broadcast(new BookingUpdated($booking, $newDateBookedSlots, 'rescheduled_to'));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Appointment rescheduled successfully.',
+                'booking' => [
+                    ...collect($booking->refresh())->except(['booking_time'])->toArray(),
+                    'booking_time' => Carbon::parse($booking->booking_time)->format('g:i A'),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Booking reschedule failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reschedule booking. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     private function processRefund($booking)
@@ -85,23 +186,27 @@ class BookingController extends Controller
     {
         $date = $request->date;
 
-        // Get all bookings for the selected date
+        // Get all bookings for the selected date that are not cancelled
         $bookedSlots = Booking::where('booking_date', $date)
+            ->whereNotIn('status', ['cancelled'])
             ->pluck('booking_time')
-            ->map(fn($time) => $time->format('H:i'))
+            ->map(function($time) {
+                return Carbon::parse($time)->format('g:i A');
+            })
             ->toArray();
 
-        // Define all possible time slots
+        // Define all possible time slots with AM/PM format (1-hour intervals)
         $allSlots = [
-            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-            '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-            '16:00', '16:30', '17:00', '17:30'
+            '9:00 AM', '10:00 AM', '11:00 AM',
+            '1:00 PM', '2:00 PM', '3:00 PM',
+            '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM'
         ];
 
-        // Filter out booked slots
-        $availableSlots = array_values(array_diff($allSlots, $bookedSlots));
-
-        return response()->json(['slots' => $availableSlots]);
+        // Return both all slots and booked slots
+        return response()->json([
+            'slots' => $allSlots,
+            'booked_slots' => $bookedSlots
+        ]);
     }
 
     public function getUserBookings()
@@ -109,7 +214,13 @@ class BookingController extends Controller
         $bookings = Auth::user()->bookings()
             ->orderBy('booking_date', 'asc')
             ->orderBy('booking_time', 'asc')
-            ->get();
+            ->get()
+            ->map(function($booking) {
+                return [
+                    ...collect($booking)->except(['booking_time'])->toArray(),
+                    'booking_time' => Carbon::parse($booking->booking_time)->format('g:i A'),
+                ];
+            });
 
         return response()->json(['bookings' => $bookings]);
     }
@@ -158,13 +269,15 @@ class BookingController extends Controller
         $date = $request->date;
         $time = $request->time;
 
-        // Get all barbers with their details
-        $barbers = Barber::select('id', 'name', 'profile_photo', 'years_of_experience', 'specialties', 'bio')
+        // Get all barbers who are marked as available
+        $barbers = Barber::where('is_available', true)
+            ->select('id', 'name', 'profile_photo', 'years_of_experience', 'specialties', 'bio')
             ->get();
 
-        // Get bookings for the requested date and time
+        // Get bookings for the requested date and time that are not cancelled
         $bookedBarberIds = Booking::where('booking_date', $date)
             ->where('booking_time', $time)
+            ->whereNotIn('status', ['cancelled'])
             ->pluck('barber_id');
 
         // Filter out booked barbers
@@ -183,7 +296,7 @@ class BookingController extends Controller
     {
         return Inertia::render('Booking/Payment', [
             'booking' => $booking->load('barber'),
-            'amount' => $booking->deposit_amount,
+            'amount' => (float) $booking->deposit_amount,
         ]);
     }
 
@@ -201,6 +314,20 @@ class BookingController extends Controller
             'status' => 'confirmed'
         ]);
 
+        // Send booking confirmation email
+        Mail::to($booking->user->email)->send(new BookingConfirmation($booking));
+
         return redirect()->route('dashboard')->with('success', 'Booking confirmed successfully!');
+    }
+
+    private function getBookedSlots($date)
+    {
+        return Booking::where('booking_date', $date)
+            ->whereNotIn('status', ['cancelled'])
+            ->pluck('booking_time')
+            ->map(function($time) {
+                return Carbon::parse($time)->format('g:i A');
+            })
+            ->toArray();
     }
 }

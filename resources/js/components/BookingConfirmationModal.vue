@@ -1,70 +1,107 @@
 <template>
-    <div v-if="show" class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
-                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
+    <Modal :show="show" @close="$emit('close')">
+        <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900">
+                Confirm Your Booking
+            </h2>
 
-            <div class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+            <div class="mt-4">
+                <p class="text-sm text-gray-600 mb-4">
+                    Please confirm your booking details:
+                </p>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Date</p>
+                                <p class="mt-1">{{ formatDate(bookingDate) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Time</p>
+                                <p class="mt-1">{{ bookingTime }}</p>
+                            </div>
                         </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg font-medium leading-6 text-gray-900">
-                                Confirm Your Booking
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500">
-                                    Are you sure you want to book an appointment for:
-                                </p>
-                                <p class="mt-2 text-sm font-semibold text-gray-700">
-                                    Date: {{ formatDate(bookingDate) }}
-                                </p>
-                                <p class="text-sm font-semibold text-gray-700">
-                                    Time: {{ bookingTime }}
-                                </p>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Barber</p>
+                            <p class="mt-1">{{ barber?.name || 'Not selected' }}</p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Service Price</p>
+                                <p class="mt-1">£{{ formatPrice(servicePrice) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Deposit Required</p>
+                                <p class="mt-1">£{{ formatPrice(depositAmount) }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                    <button
-                        type="button"
-                        class="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        @click="confirm"
-                    >
+            </div>
+
+            <div v-if="errorMessage" class="mt-4 p-4 bg-red-50 text-red-600 rounded-md">
+                {{ errorMessage }}
+            </div>
+
+            <div v-if="successMessage" class="mt-4 p-4 bg-green-50 text-green-600 rounded-md">
+                {{ successMessage }}
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <SecondaryButton @click="$emit('close')" :disabled="isProcessing">
+                    Cancel
+                </SecondaryButton>
+                <PrimaryButton @click="$emit('confirm')" :disabled="isProcessing">
+                    <span v-if="isProcessing" class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing...
+                    </span>
+                    <span v-else>
                         Confirm Booking
-                    </button>
-                    <button
-                        type="button"
-                        class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                        @click="cancel"
-                    >
-                        Cancel
-                    </button>
-                </div>
+                    </span>
+                </PrimaryButton>
             </div>
         </div>
-    </div>
+    </Modal>
 </template>
 
 <script setup>
 import { defineProps, defineEmits } from 'vue';
+import Modal from '@/components/Modal.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
 
 const props = defineProps({
     show: Boolean,
     bookingDate: Date,
     bookingTime: String,
+    barber: {
+        type: Object,
+        required: false,
+        default: null
+    },
+    servicePrice: {
+        type: Number,
+        required: true,
+        default: 25.00
+    },
+    depositAmount: {
+        type: Number,
+        required: true,
+        default: 6.25
+    },
+    isProcessing: Boolean,
+    errorMessage: String,
+    successMessage: String
 });
 
-const emit = defineEmits(['confirm', 'cancel']);
+defineEmits(['close', 'confirm']);
 
 const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('en-GB', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -72,6 +109,7 @@ const formatDate = (date) => {
     });
 };
 
-const confirm = () => emit('confirm');
-const cancel = () => emit('cancel');
+const formatPrice = (price) => {
+    return price.toFixed(2);
+};
 </script>

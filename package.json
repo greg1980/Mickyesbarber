@@ -20,6 +20,8 @@
     },
     "dependencies": {
         "@heroicons/vue": "^2.2.0",
-        "@stripe/stripe-js": "^5.6.0"
+        "@stripe/stripe-js": "^5.7.0",
+        "laravel-echo": "^2.0.2",
+        "pusher-js": "^8.4.0"
     }
 }

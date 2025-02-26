@@ -43,10 +43,13 @@
                                             :class="[
                                                 'px-2 py-1 text-sm rounded-md',
                                                 newTime === time
-                                                    ? 'bg-blue-600 text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    ? 'bg-green-600 text-white'
+                                                    : isSlotBooked(time)
+                                                        ? 'bg-pink-100 text-pink-500 cursor-not-allowed'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             ]"
-                                            @click="newTime = time"
+                                            @click="!isSlotBooked(time) && (newTime = time)"
+                                            :disabled="isSlotBooked(time)"
                                         >
                                             {{ time }}
                                         </button>
@@ -60,10 +63,14 @@
                     <button
                         type="button"
                         class="inline-flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-                        :disabled="!isValid"
+                        :disabled="!isValid || isProcessing"
                         @click="confirm"
                     >
-                        Confirm Reschedule
+                        <svg v-if="isProcessing" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {{ isProcessing ? 'Rescheduling...' : 'Confirm Reschedule' }}
                     </button>
                     <button
                         type="button"
@@ -79,23 +86,43 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
     show: Boolean,
     booking: Object,
-    availableTimeSlots: Array
+    availableTimeSlots: Array,
+    isProcessing: Boolean,
+    bookedSlots: {
+        type: Array,
+        default: () => []
+    }
 });
 
-const emit = defineEmits(['confirm', 'cancel']);
+const emit = defineEmits(['confirm', 'cancel', 'dateSelected']);
 
 const newDate = ref('');
 const newTime = ref('');
 
+// Reset form when modal is opened/closed
+watch(() => props.show, (newVal) => {
+    if (!newVal) {
+        newDate.value = '';
+        newTime.value = '';
+    }
+});
+
+// Watch for date changes to fetch booked slots
+watch(() => newDate.value, (date) => {
+    if (date) {
+        emit('dateSelected', date);
+    }
+});
+
 const minDate = computed(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toISOString().split('T')[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today.toISOString().split('T')[0];
 });
 
 const isValid = computed(() => {
@@ -113,5 +140,13 @@ const cancel = () => {
     newDate.value = '';
     newTime.value = '';
     emit('cancel');
+};
+
+const isSlotBooked = (time) => {
+    // Don't consider the current booking's time slot as booked
+    if (props.booking && props.booking.booking_time === time) {
+        return false;
+    }
+    return props.bookedSlots.includes(time);
 };
 </script>

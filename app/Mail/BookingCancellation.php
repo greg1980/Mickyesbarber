@@ -9,32 +9,28 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Booking;
 
-class BookingRescheduled extends Mailable
+class BookingCancellation extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $booking;
-    public $oldDate;
-    public $oldTime;
 
-    public function __construct(Booking $booking, array $oldDateTime)
+    public function __construct(Booking $booking)
     {
         $this->booking = $booking;
-        $this->oldDate = $oldDateTime['date'];
-        $this->oldTime = $oldDateTime['time'];
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Booking Rescheduled - MickyesBarbers',
+            subject: 'Booking Cancellation - MickyesBarbers',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.booking-rescheduled',
+            view: 'emails.booking-cancellation',
         );
     }
 }

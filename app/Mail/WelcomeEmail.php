@@ -7,34 +7,30 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Booking;
+use App\Models\User;
 
-class BookingRescheduled extends Mailable
+class WelcomeEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $booking;
-    public $oldDate;
-    public $oldTime;
+    public $user;
 
-    public function __construct(Booking $booking, array $oldDateTime)
+    public function __construct(User $user)
     {
-        $this->booking = $booking;
-        $this->oldDate = $oldDateTime['date'];
-        $this->oldTime = $oldDateTime['time'];
+        $this->user = $user;
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Booking Rescheduled - MickyesBarbers',
+            subject: 'Welcome to MickyesBarbers!',
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.booking-rescheduled',
+            view: 'emails.welcome',
         );
     }
 }

@@ -1,11 +1,13 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3'
-import BookingConfirmationModal from '@/Components/BookingConfirmationModal.vue';
+import BookingConfirmationModal from '@/components/BookingConfirmationModal.vue';
 import { loadStripe } from '@stripe/stripe-js';
-import BarberSelector from '@/Components/BarberSelector.vue';
+import BarberSelector from '@/components/BarberSelector.vue';
+import axios from 'axios';
+import RescheduleModal from '@/components/RescheduleModal.vue';
 
 // You can get the user data from your auth props
 const props = defineProps({
@@ -24,9 +26,9 @@ const getGreeting = () => {
 const selectedDate = ref(new Date());
 const selectedTime = ref(null);
 const availableTimeSlots = ref([
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30'
+    '9:00 AM', '10:00 AM', '11:00 AM',
+    '1:00 PM', '2:00 PM', '3:00 PM',
+    '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM'
 ]);
 
 // Calendar generation logic
@@ -79,14 +81,26 @@ const isDateSelectable = (date) => {
     if (!date) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date >= today;
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate >= today;
 };
 
 const showConfirmationModal = ref(false);
 const errors = ref({});
 const successMessage = ref('');
+const isProcessing = ref(false);
+const errorMessage = ref('');
 
 const handleBooking = () => {
+    if (!selectedDate.value || !selectedTime.value || !selectedBarber.value) {
+        successMessage.value = 'Please select a date, time, and barber before booking.';
+        messageType.value = 'error';
+        setTimeout(() => {
+            successMessage.value = '';
+        }, 3000);
+        return;
+    }
     showConfirmationModal.value = true;
 };
 
@@ -106,6 +120,68 @@ const fetchUserBookings = async () => {
 // Call this when component mounts
 onMounted(() => {
     fetchUserBookings();
+
+    // Listen for booking updates
+    window.Echo.channel('bookings')
+        .listen('.booking.created', (e) => {
+            if (selectedDate.value && e.booking.date === selectedDate.value) {
+                bookedSlots.value = e.booked_slots;
+            }
+            if (e.booking.user_id === props.auth.user.id) {
+                fetchUserBookings();
+            }
+        })
+        .listen('.booking.cancelled', (e) => {
+            if (selectedDate.value && e.booking.date === selectedDate.value) {
+                bookedSlots.value = e.booked_slots;
+            }
+            if (e.booking.user_id === props.auth.user.id) {
+                fetchUserBookings();
+            }
+        })
+        .listen('.booking.rescheduled_from', (e) => {
+            if (selectedDate.value && e.booking.date === selectedDate.value) {
+                bookedSlots.value = e.booked_slots;
+            }
+            if (e.booking.user_id === props.auth.user.id) {
+                fetchUserBookings();
+            }
+        })
+        .listen('.booking.rescheduled_to', (e) => {
+            if (selectedDate.value && e.booking.date === selectedDate.value) {
+                bookedSlots.value = e.booked_slots;
+            }
+            if (e.booking.user_id === props.auth.user.id) {
+                fetchUserBookings();
+            }
+        });
+
+    // Listen for user-specific updates
+    if (props.auth.user) {
+        window.Echo.channel(`user.${props.auth.user.id}`)
+            .listen('.booking.updated', (e) => {
+                fetchUserBookings();
+            });
+    }
+
+    // Listen for barber-specific updates if user is a barber
+    if (props.auth.user?.isBarber) {
+        window.Echo.channel(`barber.${props.auth.user.barber.id}`)
+            .listen('.booking.updated', (e) => {
+                fetchUserBookings();
+            });
+    }
+});
+
+onUnmounted(() => {
+    // Clean up WebSocket connections
+    window.Echo.leave('bookings');
+    if (props.auth.user) {
+        window.Echo.leave(`user.${props.auth.user.id}`);
+    }
+    if (props.auth.user?.isBarber) {
+        window.Echo.leave(`barber.${props.auth.user.barber.id}`);
+    }
 });
 
 // Add computed property for upcoming appointments count
@@ -118,25 +194,51 @@ const upcomingAppointments = computed(() => {
     }).length;
 });
 
+// Add these refs
+const selectedBarber = ref(null);
+const barbers = ref([]);
+const availableBarbers = ref([]);
+const canBook = computed(() => selectedDate.value && selectedTime.value && selectedBarber.value);
+
+const onBarberSelect = (barber) => {
+    selectedBarber.value = barber;
+};
+
 // Update the confirmBooking function
 const confirmBooking = () => {
-    router.post('/bookings', {
+    const servicePrice = SERVICE_PRICE;
+    const depositAmount = SERVICE_PRICE * 0.25;
+    isProcessing.value = true;
+
+    axios.post('/bookings', {
+        barber_id: selectedBarber.value.id,
         booking_date: selectedDate.value.toISOString().split('T')[0],
         booking_time: selectedTime.value,
-    }, {
-        onSuccess: () => {
+        service_price: servicePrice,
+        deposit_amount: depositAmount
+    })
+    .then(response => {
+        if (response.data.success) {
             showConfirmationModal.value = false;
             selectedTime.value = null;
-            successMessage.value = 'Booking created successfully!';
+            selectedBarber.value = null;
+            successMessage.value = response.data.message;
             setTimeout(() => {
-                successMessage.value = '';
-            }, 3000);
-            // Fetch updated bookings immediately
-            fetchUserBookings();
-        },
-        onError: (errors) => {
-            this.errors = errors;
+                window.location.href = response.data.payment_url;
+            }, 1500);
+        } else {
+            throw new Error(response.data.message);
         }
+    })
+    .catch(error => {
+        console.error('Booking error:', error);
+        errorMessage.value = error.response?.data?.message || 'Failed to create booking. Please try again.';
+        setTimeout(() => {
+            errorMessage.value = '';
+        }, 3000);
+    })
+    .finally(() => {
+        isProcessing.value = false;
     });
 };
 
@@ -153,12 +255,16 @@ const cancelBooking = async (bookingId) => {
     }
 };
 
-// Add this function to fetch available time slots when date changes
+// Add these refs
+const bookedSlots = ref([]);
+
+// Update the fetchAvailableSlots function
 const fetchAvailableSlots = async (date) => {
     try {
         const response = await fetch(`/api/available-slots?date=${date.toISOString().split('T')[0]}`);
         const data = await response.json();
         availableTimeSlots.value = data.slots;
+        bookedSlots.value = data.booked_slots;
 
         // Fetch available barbers
         const barbersResponse = await fetch(`/api/available-barbers?date=${date.toISOString().split('T')[0]}&time=${selectedTime.value}`);
@@ -168,6 +274,11 @@ const fetchAvailableSlots = async (date) => {
     } catch (error) {
         console.error('Error fetching availability:', error);
     }
+};
+
+// Add a function to check if a slot is booked
+const isSlotBooked = (time) => {
+    return bookedSlots.value.includes(time);
 };
 
 // Update the isDateSelected computed property
@@ -235,20 +346,64 @@ const handlePayment = async (booking) => {
     }
 };
 
-// Add to existing data
-const selectedBarber = ref(null);
-const availableBarbers = ref([]);
-const barbers = ref([]);
+const isRescheduleModalOpen = ref(false);
+const selectedBookingForReschedule = ref(null);
+const rescheduleAvailableTimeSlots = ref([]);
 
-// Handle barber selection
-const onBarberSelect = (barber) => {
-    selectedBarber.value = barber;
+const showRescheduleModal = async (booking) => {
+    selectedBookingForReschedule.value = booking;
+    // Fetch available slots for the next day
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const response = await fetch(`/api/available-slots?date=${tomorrow.toISOString().split('T')[0]}`);
+    const data = await response.json();
+    rescheduleAvailableTimeSlots.value = data.slots;
+    isRescheduleModalOpen.value = true;
 };
 
-// Update booking validation
-const canBook = computed(() => {
-    return selectedDate.value && selectedTime.value && selectedBarber.value;
-});
+const handleReschedule = async (newSchedule) => {
+    try {
+        isProcessing.value = true;
+        errorMessage.value = '';
+
+        const response = await axios.post(`/bookings/${selectedBookingForReschedule.value.id}/reschedule`, {
+            new_date: newSchedule.date,
+            new_time: newSchedule.time
+        });
+
+        if (response.data.success) {
+            isRescheduleModalOpen.value = false;
+            selectedBookingForReschedule.value = null;
+            fetchUserBookings(); // Refresh the bookings list
+            successMessage.value = 'Booking rescheduled successfully!';
+            setTimeout(() => {
+                successMessage.value = '';
+            }, 3000);
+        } else {
+            throw new Error(response.data.message || 'Failed to reschedule booking');
+        }
+    } catch (error) {
+        console.error('Error rescheduling booking:', error);
+        errorMessage.value = error.response?.data?.message || 'Failed to reschedule booking. Please try again.';
+        setTimeout(() => {
+            errorMessage.value = '';
+        }, 3000);
+    } finally {
+        isProcessing.value = false;
+    }
+};
+
+// Add the handleRescheduleDateSelected function
+const handleRescheduleDateSelected = async (date) => {
+    try {
+        const response = await fetch(`/api/available-slots?date=${date}`);
+        const data = await response.json();
+        rescheduleAvailableTimeSlots.value = data.slots;
+        bookedSlots.value = data.booked_slots;
+    } catch (error) {
+        console.error('Error fetching availability:', error);
+    }
+};
 </script>
 
 <template>
@@ -395,6 +550,26 @@ const canBook = computed(() => {
                                     </li>
                                 </ul>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barber Registration Promotion -->
+                <div v-if="!$page.props.auth.user.isBarber" class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">Want to Join Our Team?</h3>
+                                <p class="mt-1 text-sm text-gray-600">
+                                    Are you a professional barber? Join our platform and start taking bookings today!
+                                </p>
+                            </div>
+                            <Link
+                                :href="route('barber.register')"
+                                class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            >
+                                Register as Barber
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -550,9 +725,12 @@ const canBook = computed(() => {
                                             'px-4 py-2 text-sm rounded-md',
                                             selectedTime === time
                                                 ? 'bg-green-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                : isSlotBooked(time)
+                                                    ? 'bg-pink-100 text-pink-500 cursor-not-allowed'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         ]"
-                                        @click="selectedTime = time"
+                                        @click="!isSlotBooked(time) && (selectedTime = time)"
+                                        :disabled="isSlotBooked(time)"
                                     >
                                         {{ time }}
                                     </button>
@@ -599,8 +777,26 @@ const canBook = computed(() => {
                     :show="showConfirmationModal"
                     :booking-date="selectedDate"
                     :booking-time="selectedTime"
+                    :barber="selectedBarber"
+                    :service-price="SERVICE_PRICE"
+                    :deposit-amount="SERVICE_PRICE * 0.25"
+                    :is-processing="isProcessing"
+                    :error-message="errorMessage"
+                    :success-message="successMessage"
+                    @close="showConfirmationModal = false"
                     @confirm="confirmBooking"
-                    @cancel="showConfirmationModal = false"
+                />
+
+                <!-- Add RescheduleModal component -->
+                <RescheduleModal
+                    :show="isRescheduleModalOpen"
+                    :booking="selectedBookingForReschedule"
+                    :available-time-slots="rescheduleAvailableTimeSlots"
+                    :booked-slots="bookedSlots"
+                    :is-processing="isProcessing"
+                    @confirm="handleReschedule"
+                    @cancel="isRescheduleModalOpen = false"
+                    @dateSelected="handleRescheduleDateSelected"
                 />
             </div>
         </div>

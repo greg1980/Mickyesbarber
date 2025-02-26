@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
+        'is_active',
     ];
 
     /**
@@ -38,16 +40,25 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_admin' => 'boolean',
+        'is_active' => 'boolean',
+    ];
 
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function barber()
+    {
+        return $this->hasOne(Barber::class);
+    }
+
+    public function isBarber()
+    {
+        return $this->barber()->exists();
     }
 }
