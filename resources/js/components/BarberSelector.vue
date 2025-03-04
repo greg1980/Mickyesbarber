@@ -16,18 +16,21 @@
                     <img
                         :src="barber.profile_photo"
                         :alt="barber.name"
-                        class="w-24 h-24 rounded-full object-cover border-2"
-                        :class="selectedBarberId === barber.id ? 'border-green-500' : 'border-gray-200'"
+                        class="w-24 h-24 rounded-full object-cover border-2 transition-all duration-200"
+                        :class="[
+                            selectedBarberId === barber.id ? 'border-green-500 scale-105' : 'border-gray-200',
+                            !isBarberAvailable(barber.id) ? 'opacity-40' : 'hover:border-green-300'
+                        ]"
                         @error="handleImageError"
                     />
 
                     <!-- Selected Indicator -->
                     <div
                         v-if="selectedBarberId === barber.id"
-                        class="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white"
+                        class="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-scale-in"
                     >
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
 
@@ -68,7 +71,7 @@ const props = defineProps({
         required: true
     },
     selectedDate: {
-        type: Date,
+        type: [Date, String],
         required: true
     },
     availableBarbers: {
@@ -101,8 +104,19 @@ watch(() => props.selectedDate, () => {
 });
 </script>
 
-<style scoped>
-.group:hover .group-hover\:block {
-    display: block;
+<style>
+@keyframes scale-in {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-scale-in {
+    animation: scale-in 0.2s ease-out forwards;
 }
 </style>

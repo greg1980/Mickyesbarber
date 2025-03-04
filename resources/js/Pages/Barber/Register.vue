@@ -1,25 +1,19 @@
 <template>
-    <AuthenticatedLayout>
+    <Head title="Register as Barber" />
+    <UserLayout>
+        <template #header>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Register as a Barber
+            </h2>
+        </template>
+
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <!-- Success Message -->
-                <div v-if="showMessage" class="mb-4">
-                    <div :class="[
-                        'p-4 rounded-md',
-                        messageType === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                    ]">
-                        {{ message }}
-                    </div>
-                </div>
-
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h2 class="text-2xl font-semibold mb-6">Register as a Barber</h2>
-
                         <form @submit.prevent="submit" class="space-y-6">
-                            <!-- Name -->
                             <div>
-                                <InputLabel for="name" value="Name" />
+                                <InputLabel for="name" value="Name" required />
                                 <TextInput
                                     id="name"
                                     type="text"
@@ -30,9 +24,26 @@
                                 <InputError :message="form.errors.name" class="mt-2" />
                             </div>
 
-                            <!-- Bio -->
                             <div>
-                                <InputLabel for="bio" value="Bio" />
+                                <InputLabel for="profile_photo" value="Profile Photo" required />
+                                <input
+                                    type="file"
+                                    id="profile_photo"
+                                    @input="form.profile_photo = $event.target.files[0]"
+                                    class="mt-1 block w-full text-sm text-gray-500
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-md file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-indigo-50 file:text-indigo-700
+                                    hover:file:bg-indigo-100"
+                                    accept="image/*"
+                                    required
+                                />
+                                <InputError :message="form.errors.profile_photo" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="bio" value="Bio" required />
                                 <textarea
                                     id="bio"
                                     v-model="form.bio"
@@ -43,145 +54,83 @@
                                 <InputError :message="form.errors.bio" class="mt-2" />
                             </div>
 
-                            <!-- Years of Experience -->
                             <div>
-                                <InputLabel for="years_of_experience" value="Years of Experience" />
-                                <input
+                                <InputLabel for="years_of_experience" value="Years of Experience" required />
+                                <TextInput
                                     id="years_of_experience"
                                     type="number"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    :value="form.years_of_experience"
-                                    @input="e => form.years_of_experience = e.target.value"
+                                    class="mt-1 block w-full"
+                                    v-model="form.years_of_experience"
                                     required
-                                    min="0"
                                 />
                                 <InputError :message="form.errors.years_of_experience" class="mt-2" />
                             </div>
 
-                            <!-- Specialties -->
                             <div>
-                                <InputLabel value="Specialties" />
+                                <InputLabel value="Specialties" required />
                                 <div class="mt-2 space-y-2">
-                                    <label v-for="specialty in availableSpecialties" :key="specialty" class="flex items-center">
+                                    <label class="inline-flex items-center">
                                         <input
                                             type="checkbox"
-                                            :value="specialty"
+                                            value="Fades"
                                             v-model="form.specialties"
                                             class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                                        >
-                                        <span class="ml-2">{{ specialty }}</span>
+                                        />
+                                        <span class="ms-2">Fades</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            value="Modern Cuts"
+                                            v-model="form.specialties"
+                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                        />
+                                        <span class="ms-2">Modern Cuts</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input
+                                            type="checkbox"
+                                            value="Classic Cuts"
+                                            v-model="form.specialties"
+                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                        />
+                                        <span class="ms-2">Classic Cuts</span>
                                     </label>
                                 </div>
                                 <InputError :message="form.errors.specialties" class="mt-2" />
                             </div>
 
-                            <!-- Profile Photo -->
-                            <div>
-                                <InputLabel for="profile_photo" value="Profile Photo" />
-                                <input
-                                    type="file"
-                                    @input="form.profile_photo = $event.target.files[0]"
-                                    accept="image/*"
-                                    class="mt-1 block w-full"
-                                    required
-                                />
-                                <InputError :message="form.errors.profile_photo" class="mt-2" />
+                            <div class="flex items-center justify-end mt-6">
+                                <Button class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                    Register
+                                </Button>
                             </div>
-
-                            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                Register
-                            </PrimaryButton>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </UserLayout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useForm, usePage } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import TextInput from '@/Components/TextInput.vue';
-import InputError from '@/Components/InputError.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-
-const showMessage = ref(false);
-const message = ref('');
-const messageType = ref('success');
-
-const availableSpecialties = [
-    'Fades',
-    'Modern Cuts',
-    'Classic Cuts',
-    'Beard Trimming',
-    'Hot Towel Shave',
-    'Hair Design',
-    'Color Treatment',
-    'Razor Fades',
-    'Beard Sculpting',
-    'Traditional Cuts'
-];
+import { Head } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
+import UserLayout from '@/Layouts/UserLayout.vue';
+import InputError from '@/components/InputError.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import TextInput from '@/components/TextInput.vue';
+import Button from '@/components/Button.vue';
 
 const form = useForm({
     name: '',
+    profile_photo: null,
     bio: '',
     years_of_experience: '',
     specialties: [],
-    profile_photo: null,
 });
 
 const submit = () => {
-    if (form.processing) return;
-
-    form.post(route('barber.register.store'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            showMessage.value = true;
-            message.value = 'Successfully registered as a barber! Redirecting to dashboard...';
-            messageType.value = 'success';
-
-            // Redirect to dashboard after a short delay
-            setTimeout(() => {
-                window.location.href = route('dashboard');
-            }, 2000);
-        },
-        onError: (errors) => {
-            showMessage.value = true;
-            message.value = Object.values(errors)[0] || 'An error occurred during registration.';
-            messageType.value = 'error';
-
-            // Hide error message after 5 seconds
-            setTimeout(() => {
-                showMessage.value = false;
-            }, 5000);
-        },
-        onStart: () => {
-            showMessage.value = true;
-            message.value = 'Processing registration...';
-            messageType.value = 'success';
-        },
-        onFinish: () => {
-            form.processing = false;
-        }
-    });
+    form.post(route('barber.register'));
 };
-
-// Watch for flash messages from the server
-onMounted(() => {
-    const page = usePage();
-    const flash = page.props.flash;
-
-    if (flash.success || flash.error) {
-        message.value = flash.message || flash.success || flash.error;
-        messageType.value = flash.type || (flash.success ? 'success' : 'error');
-        showMessage.value = true;
-
-        setTimeout(() => {
-            showMessage.value = false;
-        }, 5000);
-    }
-});
 </script>

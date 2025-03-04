@@ -1,5 +1,5 @@
 <template>
-    <AuthenticatedLayout>
+    <AdminLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Admin Dashboard
@@ -9,94 +9,111 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <!-- Stats Grid -->
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-                    <!-- Total Users Card -->
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-6">
+                    <!-- Users Donut Chart -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
-                                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            <h3 class="text-lg font-medium text-gray-900 mb-4 pb-4 border-b border-gray-200">User Statistics</h3>
+                            <div class="flex items-center justify-center pt-2">
+                                <div class="relative group hover:scale-105 transition-transform duration-300 cursor-pointer">
+                                    <svg class="transform -rotate-90 w-32 h-32">
+                                        <circle
+                                            cx="64"
+                                            cy="64"
+                                            r="40"
+                                            stroke="#E5E7EB"
+                                            stroke-width="8"
+                                            fill="none"
+                                            class="group-hover:stroke-gray-300 transition-colors duration-300"
+                                        />
+                                        <circle
+                                            cx="64"
+                                            cy="64"
+                                            r="40"
+                                            stroke="#3B82F6"
+                                            stroke-width="8"
+                                            fill="none"
+                                            class="group-hover:stroke-blue-500 transition-all duration-300"
+                                            :stroke-dasharray="calculateCirclePath(userActivePercentage).circumference"
+                                            :stroke-dashoffset="calculateCirclePath(userActivePercentage).circumference - calculateCirclePath(userActivePercentage).dashArray"
+                                        />
                                     </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <div class="text-base font-bold text-gray-900 -mb-0.5 group-hover:text-blue-600">{{ Math.round(userActivePercentage) }}%</div>
+                                        <div class="text-[10px] text-gray-500 group-hover:text-blue-500">Active Users</div>
+                                    </div>
                                 </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">
-                                            Total Users
-                                        </dt>
-                                        <dd class="text-2xl font-semibold text-gray-900">
-                                            {{ stats.total_users }}
-                                        </dd>
-                                    </dl>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <div class="text-sm text-gray-500">
+                                    {{ stats.active_users }} active out of {{ stats.total_users }} total users
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Active Users Card -->
+                    <!-- Barbers Donut Chart -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
-                                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <h3 class="text-lg font-medium text-gray-900 mb-4 pb-4 border-b border-gray-200">Barber Statistics</h3>
+                            <div class="flex items-center justify-center pt-2">
+                                <div class="relative group hover:scale-105 transition-transform duration-300 cursor-pointer">
+                                    <svg class="transform -rotate-90 w-32 h-32">
+                                        <circle
+                                            cx="64"
+                                            cy="64"
+                                            r="40"
+                                            stroke="#E5E7EB"
+                                            stroke-width="8"
+                                            fill="none"
+                                            class="group-hover:stroke-gray-300 transition-colors duration-300"
+                                        />
+                                        <circle
+                                            cx="64"
+                                            cy="64"
+                                            r="40"
+                                            stroke="#EAB308"
+                                            stroke-width="8"
+                                            fill="none"
+                                            class="group-hover:stroke-yellow-500 transition-all duration-300"
+                                            :stroke-dasharray="calculateCirclePath(barberActivePercentage).circumference"
+                                            :stroke-dashoffset="calculateCirclePath(barberActivePercentage).circumference - calculateCirclePath(barberActivePercentage).dashArray"
+                                        />
                                     </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                        <div class="text-base font-bold text-gray-900 -mb-0.5 group-hover:text-yellow-600">{{ Math.round(barberActivePercentage) }}%</div>
+                                        <div class="text-[10px] text-gray-500 group-hover:text-yellow-500">Active Barbers</div>
+                                    </div>
                                 </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">
-                                            Active Users
-                                        </dt>
-                                        <dd class="text-2xl font-semibold text-gray-900">
-                                            {{ stats.active_users }}
-                                        </dd>
-                                    </dl>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <div class="text-sm text-gray-500">
+                                    {{ stats.active_barbers }} active out of {{ stats.total_barbers }} total barbers
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Total Barbers Card -->
+                    <!-- Recent Activity Card -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
-                                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                                    </svg>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4 pb-4 border-b border-gray-200">Quick Stats</h3>
+                            <div class="space-y-4 pt-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Total Users:</span>
+                                    <span class="font-semibold">{{ stats.total_users }}</span>
                                 </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">
-                                            Total Barbers
-                                        </dt>
-                                        <dd class="text-2xl font-semibold text-gray-900">
-                                            {{ stats.total_barbers }}
-                                        </dd>
-                                    </dl>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Active Users:</span>
+                                    <span class="font-semibold text-green-600">{{ stats.active_users }}</span>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Active Barbers Card -->
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
-                                    <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Total Barbers:</span>
+                                    <span class="font-semibold">{{ stats.total_barbers }}</span>
                                 </div>
-                                <div class="ml-5 w-0 flex-1">
-                                    <dl>
-                                        <dt class="text-sm font-medium text-gray-500 truncate">
-                                            Active Barbers
-                                        </dt>
-                                        <dd class="text-2xl font-semibold text-gray-900">
-                                            {{ stats.active_barbers }}
-                                        </dd>
-                                    </dl>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600">Active Barbers:</span>
+                                    <span class="font-semibold text-green-600">{{ stats.active_barbers }}</span>
                                 </div>
                             </div>
                         </div>
@@ -106,8 +123,8 @@
                 <!-- Quick Actions -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                     <div class="p-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 pb-4 border-b border-gray-200">Quick Actions</h3>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
                             <Link
                                 :href="route('admin.users')"
                                 class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 disabled:opacity-25 transition"
@@ -115,33 +132,54 @@
                                 Manage Users
                             </Link>
                             <Link
-                                :href="route('transformations.index')"
-                                class="inline-flex items-center justify-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:outline-none focus:border-purple-700 focus:ring ring-purple-300 disabled:opacity-25 transition"
-                            >
-                                View Transformations
-                            </Link>
-                            <Link
-                                :href="route('dashboard')"
+                                :href="route('admin.bookings')"
                                 class="inline-flex items-center justify-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:border-green-700 focus:ring ring-green-300 disabled:opacity-25 transition"
                             >
-                                View Bookings
+                                Manage Bookings
                             </Link>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AdminLayout>
 </template>
 
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
     stats: {
         type: Object,
         required: true
     }
 });
+
+// Compute percentages for the donut charts
+const userActivePercentage = computed(() => {
+    return (props.stats.active_users / props.stats.total_users) * 100 || 0;
+});
+
+const barberActivePercentage = computed(() => {
+    return (props.stats.active_barbers / props.stats.total_barbers) * 100 || 0;
+});
+
+// Helper function to calculate circle path
+const calculateCirclePath = (percentage) => {
+    const radius = 40;
+    const circumference = 2 * Math.PI * radius;
+    const dashArray = (percentage * circumference) / 100;
+    return {
+        circumference,
+        dashArray
+    };
+};
 </script>
+
+<style scoped>
+circle {
+    transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease;
+}
+</style>

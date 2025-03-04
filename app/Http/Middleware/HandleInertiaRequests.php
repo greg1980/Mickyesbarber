@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'is_admin' => $request->user()->is_admin,
                     'isBarber' => $request->user()->barber()->exists(),
+                    'profile_photo' => $request->user()->profile_photo ? asset('storage/' . $request->user()->profile_photo) : null,
                 ] : null,
             ],
             'flash' => [

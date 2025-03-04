@@ -24,6 +24,8 @@ class Barber extends Model
         'is_available' => 'boolean'
     ];
 
+    protected $appends = ['average_rating', 'total_reviews'];
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);
@@ -36,7 +38,7 @@ class Barber extends Model
 
     public function getAverageRatingAttribute()
     {
-        return $this->transformations()->avg('rating') ?? 0;
+        return round($this->transformations()->avg('rating') ?? 0, 1);
     }
 
     public function getTotalReviewsAttribute()

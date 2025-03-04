@@ -1,5 +1,5 @@
 <template>
-    <AuthenticatedLayout>
+    <AdminLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Manage Users
@@ -59,9 +59,11 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span :class="[
                                                 'px-2 inline-flex text-xs leading-5 font-semibold rounded-full',
-                                                user.barber ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'
+                                                user.is_admin ? 'bg-indigo-100 text-indigo-800' :
+                                                user.barber ? 'bg-purple-100 text-purple-800' :
+                                                'bg-gray-100 text-gray-800'
                                             ]">
-                                                {{ user.barber ? 'Barber' : 'Customer' }}
+                                                {{ user.is_admin ? 'Admin' : user.barber ? 'Barber' : 'Customer' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -203,20 +205,20 @@
                 </form>
             </div>
         </Modal>
-    </AuthenticatedLayout>
+    </AdminLayout>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import Modal from '@/Components/Modal.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import TextInput from '@/Components/TextInput.vue';
-import InputError from '@/Components/InputError.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import Pagination from '@/Components/Pagination.vue';
+import AdminLayout from '@/Layouts/AdminLayout.vue';
+import Modal from '@/components/Modal.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import TextInput from '@/components/TextInput.vue';
+import InputError from '@/components/InputError.vue';
+import PrimaryButton from '@/components/PrimaryButton.vue';
+import SecondaryButton from '@/components/SecondaryButton.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const props = defineProps({
     users: Object

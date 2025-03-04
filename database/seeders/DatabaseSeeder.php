@@ -22,7 +22,8 @@ class DatabaseSeeder extends Seeder
 
         // Run the barber seeder
         $this->call([
-            BarberSeeder::class
+            BarberSeeder::class,
+            TransformationSeeder::class,
         ]);
     }
 }

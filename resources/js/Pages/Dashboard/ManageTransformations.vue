@@ -1,8 +1,8 @@
 <script setup>
 import { useForm, usePage } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import UserLayout from '@/Layouts/UserLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import FlashMessage from '@/Components/FlashMessage.vue';
+import FlashMessage from '@/components/FlashMessage.vue';
 import { ref, watch, onMounted } from 'vue';
 
 const props = defineProps({
@@ -90,7 +90,7 @@ onMounted(() => {
 <template>
     <Head title="My Transformations" />
 
-    <AuthenticatedLayout>
+    <UserLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 My Transformations
@@ -276,7 +276,7 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </UserLayout>
 </template>
 
 <style>

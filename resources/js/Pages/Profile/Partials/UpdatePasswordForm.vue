@@ -1,9 +1,10 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3';
+import InputError from '@/components/InputError.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import Button from '@/components/Button.vue';
+import TextInput from '@/components/TextInput.vue';
+import Alert from '@/components/Alert.vue';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const passwordInput = ref(null);
@@ -35,6 +36,24 @@ const updatePassword = () => {
 
 <template>
     <section>
+        <!-- Success Alert -->
+        <Alert
+            v-if="$page.props.flash.success"
+            type="success"
+            class="mb-6"
+        >
+            {{ $page.props.flash.success }}
+        </Alert>
+
+        <!-- Error Alert -->
+        <Alert
+            v-if="$page.props.flash.error"
+            type="danger"
+            class="mb-6"
+        >
+            {{ $page.props.flash.error }}
+        </Alert>
+
         <header>
             <h2 class="text-lg font-medium text-gray-900">
                 Update Password
@@ -101,7 +120,14 @@ const updatePassword = () => {
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <Button
+                    type="submit"
+                    variant="primary"
+                    :disabled="form.processing"
+                    :processing="form.processing"
+                >
+                    Save
+                </Button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

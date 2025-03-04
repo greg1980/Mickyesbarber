@@ -11,13 +11,14 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->boolean('is_admin')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->string('profile_photo')->nullable();
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['is_admin', 'is_active']);
+            $table->dropColumn(['is_admin', 'is_active', 'profile_photo']);
         });
     }
 };

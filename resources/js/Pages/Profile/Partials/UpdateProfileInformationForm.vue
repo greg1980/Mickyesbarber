@@ -1,9 +1,11 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import InputError from '@/components/InputError.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import Button from '@/components/Button.vue';
+import TextInput from '@/components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import Alert from '@/components/Alert.vue';
 
 defineProps({
     mustVerifyEmail: {
@@ -15,15 +17,77 @@ defineProps({
 });
 
 const user = usePage().props.auth.user;
+const photoPreview = ref(null);
+const photoInput = ref(null);
 
 const form = useForm({
     name: user.name,
     email: user.email,
+    profile_photo: null,
+    mobile_number: user.mobile_number || '',
+    _method: 'PATCH'
 });
+
+const selectNewPhoto = () => {
+    try {
+        if (photoInput.value) {
+            photoInput.value.click();
+        }
+    } catch (error) {
+        console.error('Error selecting photo:', error);
+    }
+};
+
+const updatePhotoPreview = (e) => {
+    try {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        form.profile_photo = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            photoPreview.value = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } catch (error) {
+        console.error('Error updating photo preview:', error);
+    }
+};
+
+const submitForm = () => {
+    if (form.profile_photo || form.name !== user.name || form.email !== user.email) {
+        form.post(route('profile.update'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                form.reset('profile_photo');
+                photoPreview.value = null;
+            },
+            forceFormData: true
+        });
+    }
+};
 </script>
 
 <template>
-    <section>
+    <section class="max-w-xl">
+        <!-- Success Alert -->
+        <Alert
+            v-if="$page.props.flash.success"
+            type="success"
+            class="mb-6"
+        >
+            {{ $page.props.flash.success }}
+        </Alert>
+
+        <!-- Error Alert -->
+        <Alert
+            v-if="$page.props.flash.error"
+            type="danger"
+            class="mb-6"
+        >
+            {{ $page.props.flash.error }}
+        </Alert>
+
         <header>
             <h2 class="text-lg font-medium text-gray-900">
                 Profile Information
@@ -34,10 +98,39 @@ const form = useForm({
             </p>
         </header>
 
-        <form
-            @submit.prevent="form.patch(route('profile.update'))"
-            class="mt-6 space-y-6"
-        >
+        <form @submit.prevent="submitForm" class="mt-6 space-y-6" enctype="multipart/form-data">
+            <div>
+                <InputLabel value="Profile Photo" />
+
+                <div class="mt-2 flex items-center space-x-6">
+                    <div class="relative h-20 w-20 rounded-full overflow-hidden">
+                        <img v-if="photoPreview" :src="photoPreview" class="h-full w-full object-cover" />
+                        <img v-else-if="user.profile_photo" :src="user.profile_photo" class="h-full w-full object-cover" />
+                        <div v-else class="h-full w-full flex items-center justify-center bg-gray-100 text-gray-600 text-xl font-medium uppercase">
+                            {{ user.name.charAt(0) }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <input
+                            type="file"
+                            ref="photoInput"
+                            class="hidden"
+                            @change="updatePhotoPreview"
+                            accept="image/*"
+                        >
+                        <Button
+                            type="button"
+                            variant="primary"
+                            @click="selectNewPhoto"
+                        >
+                            Select New Photo
+                        </Button>
+                    </div>
+                </div>
+                <InputError :message="form.errors.profile_photo" class="mt-2" />
+            </div>
+
             <div>
                 <InputLabel for="name" value="Name" />
 
@@ -69,17 +162,34 @@ const form = useForm({
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
+            <div>
+                <InputLabel for="mobile_number" value="Mobile Number" />
+
+                <TextInput
+                    id="mobile_number"
+                    type="tel"
+                    class="mt-1 block w-full"
+                    v-model="form.mobile_number"
+                    placeholder="Enter your mobile number"
+                    autocomplete="tel"
+                />
+
+                <p class="mt-1 text-sm text-gray-500">Format: +XX XXXX XXXX or national format</p>
+                <InputError class="mt-2" :message="form.errors.mobile_number" />
+            </div>
+
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
                 <p class="mt-2 text-sm text-gray-800">
                     Your email address is unverified.
-                    <Link
+                    <Button
+                        variant="link"
                         :href="route('verification.send')"
                         method="post"
                         as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        class="text-sm"
                     >
                         Click here to re-send the verification email.
-                    </Link>
+                    </Button>
                 </p>
 
                 <div
@@ -91,7 +201,14 @@ const form = useForm({
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <Button
+                    type="submit"
+                    variant="primary"
+                    :disabled="form.processing || (!form.profile_photo && form.name === user.name && form.email === user.email)"
+                    :processing="form.processing"
+                >
+                    Save
+                </Button>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -99,10 +216,7 @@ const form = useForm({
                     leave-active-class="transition ease-in-out"
                     leave-to-class="opacity-0"
                 >
-                    <p
-                        v-if="form.recentlySuccessful"
-                        class="text-sm text-gray-600"
-                    >
+                    <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">
                         Saved.
                     </p>
                 </Transition>

@@ -1,10 +1,10 @@
 <script setup>
-import DangerButton from '@/Components/DangerButton.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
+import InputError from '@/components/InputError.vue';
+import InputLabel from '@/components/InputLabel.vue';
+import Modal from '@/components/Modal.vue';
+import Button from '@/components/Button.vue';
+import TextInput from '@/components/TextInput.vue';
+import Alert from '@/components/Alert.vue';
 import { useForm } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
 
@@ -17,7 +17,6 @@ const form = useForm({
 
 const confirmUserDeletion = () => {
     confirmingUserDeletion.value = true;
-
     nextTick(() => passwordInput.value.focus());
 };
 
@@ -32,7 +31,6 @@ const deleteUser = () => {
 
 const closeModal = () => {
     confirmingUserDeletion.value = false;
-
     form.clearErrors();
     form.reset();
 };
@@ -40,6 +38,24 @@ const closeModal = () => {
 
 <template>
     <section class="space-y-6">
+        <!-- Success Alert -->
+        <Alert
+            v-if="$page.props.flash.success"
+            type="success"
+            class="mb-6"
+        >
+            {{ $page.props.flash.success }}
+        </Alert>
+
+        <!-- Error Alert -->
+        <Alert
+            v-if="$page.props.flash.error"
+            type="danger"
+            class="mb-6"
+        >
+            {{ $page.props.flash.error }}
+        </Alert>
+
         <header>
             <h2 class="text-lg font-medium text-gray-900">
                 Delete Account
@@ -52,13 +68,16 @@ const closeModal = () => {
             </p>
         </header>
 
-        <DangerButton @click="confirmUserDeletion">Delete Account</DangerButton>
+        <Button
+            variant="danger"
+            @click="confirmUserDeletion"
+        >
+            Delete Account
+        </Button>
 
         <Modal :show="confirmingUserDeletion" @close="closeModal">
             <div class="p-6">
-                <h2
-                    class="text-lg font-medium text-gray-900"
-                >
+                <h2 class="text-lg font-medium text-gray-900">
                     Are you sure you want to delete your account?
                 </h2>
 
@@ -89,18 +108,22 @@ const closeModal = () => {
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <SecondaryButton @click="closeModal">
+                    <Button
+                        variant="secondary"
+                        @click="closeModal"
+                    >
                         Cancel
-                    </SecondaryButton>
+                    </Button>
 
-                    <DangerButton
+                    <Button
+                        variant="danger"
                         class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
+                        :processing="form.processing"
                         @click="deleteUser"
                     >
                         Delete Account
-                    </DangerButton>
+                    </Button>
                 </div>
             </div>
         </Modal>

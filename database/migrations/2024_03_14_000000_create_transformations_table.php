@@ -10,9 +10,13 @@ return new class extends Migration
     {
         Schema::create('transformations', function (Blueprint $table) {
             $table->id();
-            $table->string('before_image');
-            $table->string('after_image');
-            $table->text('description');
+            $table->foreignId('barber_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('booking_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('before_photo')->nullable();
+            $table->string('after_photo')->nullable();
+            $table->text('description')->nullable();
+            $table->integer('rating')->nullable();
+            $table->text('review')->nullable();
             $table->timestamps();
         });
     }

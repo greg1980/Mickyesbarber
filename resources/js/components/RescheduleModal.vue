@@ -80,6 +80,9 @@
                         Cancel
                     </button>
                 </div>
+                <div v-if="errorMessage" class="text-red-500 text-sm mt-2">
+                    {{ errorMessage }}
+                </div>
             </div>
         </div>
     </div>
@@ -87,6 +90,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
+import { format } from 'date-fns';
+import axios from 'axios';
 
 const props = defineProps({
     show: Boolean,
@@ -99,10 +104,11 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['confirm', 'cancel', 'dateSelected']);
+const emit = defineEmits(['confirm', 'cancel', 'dateSelected', 'close']);
 
 const newDate = ref('');
 const newTime = ref('');
+const errorMessage = ref('');
 
 // Reset form when modal is opened/closed
 watch(() => props.show, (newVal) => {
@@ -129,11 +135,25 @@ const isValid = computed(() => {
     return newDate.value && newTime.value;
 });
 
-const confirm = () => {
-    emit('confirm', {
-        date: newDate.value,
-        time: newTime.value
-    });
+const confirm = async () => {
+    try {
+        const formattedDate = format(new Date(newDate.value), 'yyyy-MM-dd');
+
+        const response = await axios.post(`/bookings/${props.booking.id}/reschedule`, {
+            new_date: formattedDate,
+            new_time: newTime.value,
+            barber_id: props.booking.barber_id
+        });
+
+        if (response.data.success) {
+            // Handle success
+            emit('close');
+            window.location.reload();
+        }
+    } catch (error) {
+        console.error('Error rescheduling booking:', error);
+        errorMessage.value = error.response?.data?.message || 'Failed to reschedule booking';
+    }
 };
 
 const cancel = () => {

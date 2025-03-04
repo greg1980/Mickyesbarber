@@ -1,25 +1,40 @@
 <script setup>
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import ApplicationLogo from '@/components/ApplicationLogo.vue';
 import { Link } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue';
+
+const imageError = ref(false);
+
+const handleImageError = () => {
+    imageError.value = true;
+};
 </script>
 
 <template>
     <div class="min-h-screen relative">
-        <!-- Background Image with Overlay -->
+        <!-- Background with Fallback -->
         <div class="absolute inset-0 z-0">
-            <img
-                src="/images/hero/barber-hero.jpg"
-                alt="Background"
-                class="w-full h-full object-cover"
-            />
-            <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+            <template v-if="!imageError">
+                <img
+                    src="/images/hero/barber-hero.jpg"
+                    alt="Background"
+                    class="w-full h-full object-cover"
+                    @error="handleImageError"
+                />
+            </template>
+            <div
+                :class="[
+                    'absolute inset-0',
+                    imageError ? 'bg-gradient-to-br from-gray-900 to-blue-900' : 'bg-opacity-0'
+                ]"
+            ></div>
         </div>
 
         <!-- Content -->
         <div class="relative z-10 flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0">
             <div>
-                <Link href="/">
-                    <ApplicationLogo class="h-20 w-20 fill-current text-gray-500" />
+                <Link href="/" class="flex items-center justify-center">
+                    <ApplicationLogo class="h-20 w-20" />
                 </Link>
             </div>
 

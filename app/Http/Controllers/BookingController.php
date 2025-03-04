@@ -14,241 +14,172 @@ use App\Mail\BookingConfirmation;
 use App\Mail\BookingCancellation;
 use App\Mail\BookingRescheduled;
 use App\Events\BookingUpdated;
+use Stripe\Stripe;
+use Stripe\PaymentIntent;
 
 class BookingController extends Controller
 {
     const SERVICE_PRICE = 25.00;
     const DEPOSIT_PERCENTAGE = 0.25;
 
+    public function index()
+    {
+        return Inertia::render('Bookings/Index', [
+            'bookings' => auth()->user()->bookings()
+                ->with('barber')
+                ->latest()
+                ->paginate(10)
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Bookings/Create', [
+            'barbers' => Barber::select('id', 'name', 'profile_photo', 'years_of_experience', 'specialties')
+                ->where('is_available', true)
+                ->get()
+        ]);
+    }
+
     public function store(Request $request)
     {
-        try {
-            $validated = $request->validate([
-                'barber_id' => 'required|exists:barbers,id',
-                'booking_date' => 'required|date',
-                'booking_time' => 'required',
-                'service_price' => 'required|numeric',
-                'deposit_amount' => 'required|numeric',
-            ]);
-
-            // Convert time from 12-hour to 24-hour format for storage
-            $booking_time = Carbon::createFromFormat('g:i A', $validated['booking_time'])->format('H:i:s');
-
-            $booking = Booking::create([
-                'user_id' => auth()->id(),
-                'barber_id' => $validated['barber_id'],
-                'booking_date' => $validated['booking_date'],
-                'booking_time' => $booking_time,
-                'service_price' => $validated['service_price'],
-                'deposit_amount' => $validated['deposit_amount'],
-                'status' => 'pending_payment',
-            ]);
-
-            // Get updated booked slots for the date
-            $bookedSlots = $this->getBookedSlots($validated['booking_date']);
-
-            // Broadcast the booking creation
-            broadcast(new BookingUpdated($booking, $bookedSlots, 'created'));
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Booking created successfully!',
-                'booking' => $booking,
-                'payment_url' => route('booking.payment', $booking->id)
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Booking creation failed: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create booking. Please try again.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function cancelBooking($id)
-    {
-        $booking = Auth::user()->bookings()->findOrFail($id);
-        $bookingDate = Carbon::parse($booking->booking_date);
-        $today = Carbon::today();
-
-        // If cancellation is on the same day as appointment
-        if ($bookingDate->isToday()) {
-            return back()->with('error', 'Same-day cancellations are not allowed. Please contact us to reschedule.');
-        }
-
-        // If cancellation is before appointment day
-        if ($bookingDate->isAfter($today)) {
-            $booking->update(['status' => 'cancelled']);
-
-            // Send cancellation email to customer
-            Mail::to($booking->user->email)->send(new BookingCancellation($booking));
-
-            // Send cancellation email to barber
-            if ($booking->barber && $booking->barber->user) {
-                Mail::to($booking->barber->user->email)->send(new BookingCancellation($booking));
-            }
-
-            // Process refund of deposit
-            $this->processRefund($booking);
-
-            // Get updated booked slots for the date
-            $bookedSlots = $this->getBookedSlots($booking->booking_date);
-
-            // Broadcast the cancellation
-            broadcast(new BookingUpdated($booking, $bookedSlots, 'cancelled'));
-
-            return back()->with('success', 'Booking cancelled and deposit will be refunded.');
-        }
-
-        return back()->with('error', 'Unable to cancel this booking.');
-    }
-
-    public function rescheduleBooking(Request $request, $id)
-    {
-        try {
-            $booking = Auth::user()->bookings()->findOrFail($id);
-
-            $validated = $request->validate([
-                'new_date' => 'required|date|after:today',
-                'new_time' => 'required',
-            ]);
-
-            // Convert new time from 12-hour to 24-hour format for storage
-            $new_time = Carbon::createFromFormat('g:i A', $validated['new_time'])->format('H:i:s');
-
-            // Check if the new time slot is available
-            $existingBooking = Booking::where('booking_date', $validated['new_date'])
-                ->where('booking_time', $new_time)
-                ->whereNotIn('status', ['cancelled'])
-                ->first();
-
-            if ($existingBooking) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This time slot is no longer available. Please select another time.'
-                ], 422);
-            }
-
-            // Store old datetime for email
-            $oldDateTime = [
-                'date' => $booking->booking_date,
-                'time' => Carbon::parse($booking->booking_time)->format('g:i A')
-            ];
-
-            $booking->update([
-                'booking_date' => $validated['new_date'],
-                'booking_time' => $new_time,
-                'status' => 'rescheduled',
-            ]);
-
-            // Send rescheduling confirmation email to customer
-            Mail::to($booking->user->email)->send(new BookingRescheduled($booking, $oldDateTime));
-
-            // Send rescheduling notification to barber
-            if ($booking->barber && $booking->barber->user) {
-                Mail::to($booking->barber->user->email)->send(new BookingRescheduled($booking, $oldDateTime));
-            }
-
-            // Get updated booked slots for both old and new dates
-            $oldDateBookedSlots = $this->getBookedSlots($oldDateTime['date']);
-            $newDateBookedSlots = $this->getBookedSlots($validated['new_date']);
-
-            // Broadcast for both dates
-            broadcast(new BookingUpdated($booking, $oldDateBookedSlots, 'rescheduled_from'));
-            broadcast(new BookingUpdated($booking, $newDateBookedSlots, 'rescheduled_to'));
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Appointment rescheduled successfully.',
-                'booking' => [
-                    ...collect($booking->refresh())->except(['booking_time'])->toArray(),
-                    'booking_time' => Carbon::parse($booking->booking_time)->format('g:i A'),
-                ]
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Booking reschedule failed: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to reschedule booking. Please try again.',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    private function processRefund($booking)
-    {
-        // Implement refund logic here using your payment provider
-        // Only process refund for cancellations before the appointment day
-    }
-
-    public function getAvailableSlots(Request $request)
-    {
-        $date = $request->date;
-
-        // Get all bookings for the selected date that are not cancelled
-        $bookedSlots = Booking::where('booking_date', $date)
-            ->whereNotIn('status', ['cancelled'])
-            ->pluck('booking_time')
-            ->map(function($time) {
-                return Carbon::parse($time)->format('g:i A');
-            })
-            ->toArray();
-
-        // Define all possible time slots with AM/PM format (1-hour intervals)
-        $allSlots = [
-            '9:00 AM', '10:00 AM', '11:00 AM',
-            '1:00 PM', '2:00 PM', '3:00 PM',
-            '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM'
-        ];
-
-        // Return both all slots and booked slots
-        return response()->json([
-            'slots' => $allSlots,
-            'booked_slots' => $bookedSlots
+        $validated = $request->validate([
+            'barber_id' => 'required|exists:barbers,id',
+            'date' => 'required|date|after:today',
+            'time' => 'required',
+            'notes' => 'nullable|string|max:500',
         ]);
+
+        // Calculate service price and deposit
+        $servicePrice = self::SERVICE_PRICE;
+        $depositAmount = $servicePrice * self::DEPOSIT_PERCENTAGE;
+
+        $booking = auth()->user()->bookings()->create([
+            'barber_id' => $validated['barber_id'],
+            'booking_date' => $validated['date'],
+            'booking_time' => $validated['time'],
+            'notes' => $validated['notes'],
+            'status' => 'pending',
+            'service_price' => $servicePrice,
+            'deposit_amount' => $depositAmount,
+            'payment_status' => 'pending'
+        ]);
+
+        // Redirect to payment page
+        return redirect()->route('booking.payment', $booking);
+    }
+
+    public function showPayment(Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $intent = PaymentIntent::create([
+            'amount' => $booking->deposit_amount * 100,
+            'currency' => 'gbp',
+            'metadata' => [
+                'booking_id' => $booking->id
+            ]
+        ]);
+
+        return Inertia::render('Bookings/Payment', [
+            'booking' => $booking->load('barber'),
+            'clientSecret' => $intent->client_secret,
+        ]);
+    }
+
+    public function processPayment(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $booking->update([
+            'payment_status' => 'paid',
+            'status' => 'confirmed',
+            'stripe_payment_id' => $request->payment_intent
+        ]);
+
+        return redirect()->route('bookings.user')->with('success', 'Booking confirmed successfully!');
     }
 
     public function getUserBookings()
     {
-        $bookings = Auth::user()->bookings()
-            ->orderBy('booking_date', 'asc')
-            ->orderBy('booking_time', 'asc')
-            ->get()
-            ->map(function($booking) {
-                return [
-                    ...collect($booking)->except(['booking_time'])->toArray(),
-                    'booking_time' => Carbon::parse($booking->booking_time)->format('g:i A'),
-                ];
-            });
+        return Inertia::render('Bookings/Index', [
+            'bookings' => auth()->user()->bookings()
+                ->with('barber')
+                ->latest()
+                ->paginate(10)
+        ]);
+    }
 
-        return response()->json(['bookings' => $bookings]);
+    public function cancelBooking(Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $booking->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Booking cancelled successfully');
+    }
+
+    public function reschedule(Request $request, Booking $booking)
+    {
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'date' => 'required|date|after:today',
+            'time' => 'required',
+        ]);
+
+        $booking->update([
+            'appointment_date' => $validated['date'],
+            'appointment_time' => $validated['time'],
+            'status' => 'rescheduled'
+        ]);
+
+        return back()->with('success', 'Booking rescheduled successfully');
+    }
+
+    public function getAvailableSlots(Request $request)
+    {
+        $request->validate([
+            'barber_id' => 'required|exists:barbers,id',
+            'date' => 'required|date|after:today',
+        ]);
+
+        $barber = Barber::find($request->barber_id);
+        $bookedSlots = $barber->bookings()
+            ->whereDate('appointment_date', $request->date)
+            ->pluck('appointment_time')
+            ->toArray();
+
+        $allSlots = [
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+            '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+            '15:00', '15:30', '16:00', '16:30', '17:00'
+        ];
+
+        $availableSlots = array_values(array_diff($allSlots, $bookedSlots));
+
+        return response()->json(['available_slots' => $availableSlots]);
     }
 
     public function updateStatus(Request $request, Booking $booking)
     {
-        $validated = $request->validate([
-            'status' => 'required|in:confirmed,completed,cancelled',
-            'notes' => 'nullable|string'
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,completed,cancelled,no-show'
         ]);
 
-        $oldStatus = $booking->status;
-        $booking->update($validated);
+        $booking->update(['status' => $request->status]);
 
-        // Send appropriate notifications
-        if ($oldStatus !== $booking->status) {
-            switch ($booking->status) {
-                case 'cancelled':
-                    Mail::to($booking->user->email)
-                        ->send(new BookingCancelled($booking));
-                    break;
-                case 'completed':
-                    // Could add a completion email here
-                    break;
-            }
-        }
-
-        return back()->with('success', 'Booking updated successfully');
+        return back()->with('success', 'Booking status updated successfully');
     }
 
     public function getAdminStats()
@@ -292,42 +223,29 @@ class BookingController extends Controller
         ]);
     }
 
-    public function showPayment(Booking $booking)
+    public function getDashboardData()
     {
-        return Inertia::render('Booking/Payment', [
-            'booking' => $booking->load('barber'),
-            'amount' => (float) $booking->deposit_amount,
+        $user = auth()->user();
+
+        $upcomingAppointments = $user->bookings()
+            ->where('booking_date', '>=', now())
+            ->where('status', '!=', 'cancelled')
+            ->count();
+
+        $lastVisit = $user->bookings()
+            ->where('status', 'completed')
+            ->latest('booking_date')
+            ->first();
+
+        // Calculate loyalty points (10 points per completed booking)
+        $loyaltyPoints = $user->bookings()
+            ->where('status', 'completed')
+            ->count() * 10;
+
+        return response()->json([
+            'upcomingAppointments' => $upcomingAppointments,
+            'lastVisit' => $lastVisit ? $lastVisit->booking_date->format('M d, Y') : null,
+            'loyaltyPoints' => $loyaltyPoints
         ]);
-    }
-
-    public function processPayment(Request $request, Booking $booking)
-    {
-        $validated = $request->validate([
-            'payment_method' => 'required|string',
-            // Add any other payment validation you need
-        ]);
-
-        // Process payment logic here
-
-        $booking->update([
-            'payment_status' => 'paid',
-            'status' => 'confirmed'
-        ]);
-
-        // Send booking confirmation email
-        Mail::to($booking->user->email)->send(new BookingConfirmation($booking));
-
-        return redirect()->route('dashboard')->with('success', 'Booking confirmed successfully!');
-    }
-
-    private function getBookedSlots($date)
-    {
-        return Booking::where('booking_date', $date)
-            ->whereNotIn('status', ['cancelled'])
-            ->pluck('booking_time')
-            ->map(function($time) {
-                return Carbon::parse($time)->format('g:i A');
-            })
-            ->toArray();
     }
 }
