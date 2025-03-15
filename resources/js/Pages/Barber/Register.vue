@@ -11,13 +11,19 @@
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
+                        <!-- Header Section -->
+                        <div class="mb-8">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">Register as a Barber</h1>
+                            <p class="text-gray-600">Join our team of professional barbers and start building your client base today. Fill out the form below to get started.</p>
+                        </div>
+
                         <form @submit.prevent="submit" class="space-y-6">
                             <div>
                                 <InputLabel for="name" value="Name" required />
                                 <TextInput
                                     id="name"
                                     type="text"
-                                    class="mt-1 block w-full"
+                                    class="mt-1 block w-full max-w-md"
                                     v-model="form.name"
                                     required
                                 />
@@ -32,10 +38,11 @@
                                     @input="form.profile_photo = $event.target.files[0]"
                                     class="mt-1 block w-full text-sm text-gray-500
                                     file:mr-4 file:py-2 file:px-4
-                                    file:rounded-md file:border-0
+                                    file:rounded-none file:border-0
                                     file:text-sm file:font-semibold
-                                    file:bg-indigo-50 file:text-indigo-700
-                                    hover:file:bg-indigo-100"
+                                    file:bg-blue-500 file:text-white
+                                    hover:file:bg-blue-600
+                                    file:transition-colors file:duration-200"
                                     accept="image/*"
                                     required
                                 />
@@ -47,7 +54,7 @@
                                 <textarea
                                     id="bio"
                                     v-model="form.bio"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                     rows="4"
                                     required
                                 ></textarea>
@@ -59,7 +66,7 @@
                                 <TextInput
                                     id="years_of_experience"
                                     type="number"
-                                    class="mt-1 block w-full"
+                                    class="mt-1 block w-full max-w-[160px]"
                                     v-model="form.years_of_experience"
                                     required
                                 />
@@ -69,30 +76,30 @@
                             <div>
                                 <InputLabel value="Specialties" required />
                                 <div class="mt-2 space-y-2">
-                                    <label class="inline-flex items-center">
+                                    <label class="inline-flex items-center mb-3">
                                         <input
                                             type="checkbox"
                                             value="Fades"
                                             v-model="form.specialties"
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            class="rounded border-gray-400 text-gray-800 shadow-sm focus:ring-gray-800"
                                         />
-                                        <span class="ms-2">Fades</span>
+                                        <span class="ms-2 me-4">Fades</span>
                                     </label>
-                                    <label class="inline-flex items-center">
+                                    <label class="inline-flex items-center mb-3">
                                         <input
                                             type="checkbox"
                                             value="Modern Cuts"
                                             v-model="form.specialties"
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            class="rounded border-gray-400 text-gray-800 shadow-sm focus:ring-gray-800"
                                         />
-                                        <span class="ms-2">Modern Cuts</span>
+                                        <span class="ms-2 me-4">Modern Cuts</span>
                                     </label>
                                     <label class="inline-flex items-center">
                                         <input
                                             type="checkbox"
                                             value="Classic Cuts"
                                             v-model="form.specialties"
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                            class="rounded border-gray-400 text-gray-800 shadow-sm focus:ring-gray-800"
                                         />
                                         <span class="ms-2">Classic Cuts</span>
                                     </label>
