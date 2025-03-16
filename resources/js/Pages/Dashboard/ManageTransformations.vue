@@ -128,7 +128,7 @@ onMounted(() => {
                             <label class="block text-sm font-medium text-gray-700">Select Booking *</label>
                             <select
                                 v-model="form.booking_id"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                 required
                             >
                                 <option value="">Select a completed booking</option>
@@ -145,7 +145,13 @@ onMounted(() => {
                                 type="file"
                                 @input="form.before_photo = $event.target.files[0]"
                                 accept="image/*"
-                                class="mt-1 block w-full"
+                                class="mt-1 block w-full max-w-md text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-none file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-500 file:text-white
+                                hover:file:bg-blue-600
+                                file:transition-colors file:duration-200"
                                 required
                             >
                         </div>
@@ -156,7 +162,13 @@ onMounted(() => {
                                 type="file"
                                 @input="form.after_photo = $event.target.files[0]"
                                 accept="image/*"
-                                class="mt-1 block w-full"
+                                class="mt-1 block w-full max-w-md text-sm text-gray-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-none file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-blue-500 file:text-white
+                                hover:file:bg-blue-600
+                                file:transition-colors file:duration-200"
                                 required
                             >
                         </div>
@@ -167,7 +179,7 @@ onMounted(() => {
                                 type="text"
                                 v-model="form.haircut_style"
                                 placeholder="e.g., Fade, Crew Cut, etc."
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 required
                             >
                         </div>
@@ -194,7 +206,7 @@ onMounted(() => {
                                 v-model="form.review"
                                 rows="3"
                                 placeholder="Share your experience with the haircut..."
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             ></textarea>
                         </div>
 
@@ -202,7 +214,7 @@ onMounted(() => {
                             <button
                                 type="submit"
                                 :disabled="isSubmitting"
-                                class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors duration-200 disabled:opacity-50"
+                                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50"
                             >
                                 {{ isSubmitting ? 'Uploading...' : 'Submit Review' }}
                             </button>

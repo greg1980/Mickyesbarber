@@ -12,6 +12,7 @@ use App\Http\Controllers\BarberController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BarberDashboardController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\BarberMiddleware;
 use Illuminate\Foundation\Application;
@@ -33,7 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
 
-    Route::get('/dashboard/data', [BookingController::class, 'getDashboardData'])
+    Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])
         ->name('dashboard.data');
 
     // Booking Routes
@@ -115,6 +116,11 @@ Route::middleware(['auth'])->group(function () {
     // Keep the availability routes for barbers
     Route::post('/barbers/{barber}/toggle-availability', [BarberController::class, 'toggleAvailability'])->name('barber.toggle-availability');
     Route::get('/barbers/{barber}/availability', [BarberController::class, 'getAvailability'])->name('barber.availability');
+
+    // Payment Routes
+    Route::post('/payment/create-intent/{booking}', [PaymentController::class, 'createPaymentIntent'])->name('payment.create-intent');
+    Route::post('/payment/process/{booking}', [PaymentController::class, 'processPayment'])->name('payment.process');
+    Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 });
 
 // Add this test route

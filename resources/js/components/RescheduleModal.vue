@@ -104,7 +104,7 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['confirm', 'cancel', 'dateSelected', 'close']);
+const emit = defineEmits(['confirm', 'cancel', 'dateSelected', 'close', 'rescheduled']);
 
 const newDate = ref('');
 const newTime = ref('');
@@ -140,16 +140,24 @@ const confirm = async () => {
         const formattedDate = format(new Date(newDate.value), 'yyyy-MM-dd');
 
         const response = await axios.post(`/bookings/${props.booking.id}/reschedule`, {
-            new_date: formattedDate,
-            new_time: newTime.value,
+            date: formattedDate,
+            time: newTime.value,
             barber_id: props.booking.barber_id
         });
 
-        if (response.data.success) {
-            // Handle success
-            emit('close');
-            window.location.reload();
-        }
+        // Clear any previous error
+        errorMessage.value = '';
+
+        // Emit success event with updated booking data
+        emit('rescheduled', {
+            ...props.booking,
+            booking_date: formattedDate,
+            booking_time: newTime.value,
+            status: 'rescheduled'
+        });
+
+        // Close the modal
+        emit('close');
     } catch (error) {
         console.error('Error rescheduling booking:', error);
         errorMessage.value = error.response?.data?.message || 'Failed to reschedule booking';

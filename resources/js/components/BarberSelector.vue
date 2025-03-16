@@ -18,8 +18,8 @@
                         :alt="barber.name"
                         class="w-24 h-24 rounded-full object-cover border-2 transition-all duration-200"
                         :class="[
-                            selectedBarberId === barber.id ? 'border-green-500 scale-105' : 'border-gray-200',
-                            !isBarberAvailable(barber.id) ? 'opacity-40' : 'hover:border-green-300'
+                            selectedBarberId === barber.id ? 'border-blue-500 scale-105' : 'border-gray-200',
+                            !isBarberAvailable(barber.id) ? 'opacity-40' : 'hover:border-blue-300'
                         ]"
                         @error="handleImageError"
                     />
@@ -27,7 +27,7 @@
                     <!-- Selected Indicator -->
                     <div
                         v-if="selectedBarberId === barber.id"
-                        class="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-scale-in"
+                        class="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white shadow-lg animate-scale-in"
                     >
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />

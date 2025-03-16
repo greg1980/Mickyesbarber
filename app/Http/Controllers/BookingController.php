@@ -16,6 +16,7 @@ use App\Mail\BookingRescheduled;
 use App\Events\BookingUpdated;
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -37,7 +38,8 @@ class BookingController extends Controller
         return Inertia::render('Bookings/Create', [
             'barbers' => Barber::select('id', 'name', 'profile_photo', 'years_of_experience', 'specialties')
                 ->where('is_available', true)
-                ->get()
+                ->get(),
+            'stripe_key' => config('services.stripe.key')
         ]);
     }
 
@@ -48,11 +50,21 @@ class BookingController extends Controller
             'date' => 'required|date|after:today',
             'time' => 'required',
             'notes' => 'nullable|string|max:500',
+            'payment_type' => 'required|in:deposit,full'
         ]);
 
-        // Calculate service price and deposit
+        Log::info('Creating new booking', [
+            'user_id' => auth()->id(),
+            'barber_id' => $validated['barber_id'],
+            'date' => $validated['date'],
+            'time' => $validated['time'],
+            'payment_type' => $validated['payment_type']
+        ]);
+
+        // Calculate service price and initial amounts
         $servicePrice = self::SERVICE_PRICE;
-        $depositAmount = $servicePrice * self::DEPOSIT_PERCENTAGE;
+        $initialDeposit = 0; // Start with 0 deposit
+        $initialBalance = $servicePrice; // Full amount as initial balance
 
         $booking = auth()->user()->bookings()->create([
             'barber_id' => $validated['barber_id'],
@@ -61,15 +73,30 @@ class BookingController extends Controller
             'notes' => $validated['notes'],
             'status' => 'pending',
             'service_price' => $servicePrice,
-            'deposit_amount' => $depositAmount,
+            'deposit_amount' => $initialDeposit,
+            'balance_amount' => $initialBalance,
             'payment_status' => 'pending'
         ]);
 
-        // Redirect to payment page
-        return redirect()->route('booking.payment', $booking);
+        Log::info('Booking created', [
+            'booking_id' => $booking->id,
+            'service_price' => $booking->service_price,
+            'deposit_amount' => $booking->deposit_amount,
+            'balance_amount' => $booking->balance_amount
+        ]);
+
+        // Return JSON response with booking data
+        return response()->json([
+            'id' => $booking->id,
+            'service_price' => $booking->service_price,
+            'deposit_amount' => $booking->deposit_amount,
+            'balance_amount' => $booking->balance_amount,
+            'status' => $booking->status,
+            'message' => 'Booking created successfully'
+        ]);
     }
 
-    public function showPayment(Booking $booking)
+    public function showPayment(Booking $booking, Request $request)
     {
         if ($booking->user_id !== auth()->id()) {
             abort(403);
@@ -77,17 +104,30 @@ class BookingController extends Controller
 
         Stripe::setApiKey(config('services.stripe.secret'));
 
+        // Get the payment type from the request
+        $paymentType = $request->payment_type ?? 'deposit';
+
+        // Calculate payment amount based on payment type
+        $paymentAmount = $paymentType === 'deposit'
+            ? ($booking->service_price * self::DEPOSIT_PERCENTAGE)
+            : $booking->service_price;
+
         $intent = PaymentIntent::create([
-            'amount' => $booking->deposit_amount * 100,
+            'amount' => $paymentAmount * 100, // Convert to cents for Stripe
             'currency' => 'gbp',
             'metadata' => [
-                'booking_id' => $booking->id
+                'booking_id' => $booking->id,
+                'payment_type' => $paymentType
             ]
         ]);
 
         return Inertia::render('Bookings/Payment', [
             'booking' => $booking->load('barber'),
             'clientSecret' => $intent->client_secret,
+            'paymentAmount' => $paymentAmount,
+            'paymentType' => $paymentType,
+            'depositAmount' => $booking->service_price * self::DEPOSIT_PERCENTAGE,
+            'fullAmount' => $booking->service_price
         ]);
     }
 
@@ -97,13 +137,26 @@ class BookingController extends Controller
             abort(403);
         }
 
+        // Get the payment amount from the request
+        $paymentAmount = $request->amount;
+
+        // Calculate the new balance
+        $newBalance = $booking->service_price - ($booking->deposit_amount + $paymentAmount);
+
+        // Update booking with the payment
         $booking->update([
-            'payment_status' => 'paid',
+            'deposit_amount' => $booking->deposit_amount + $paymentAmount,
+            'balance_amount' => $newBalance,
+            'payment_status' => $newBalance <= 0 ? 'fully_paid' : 'deposit_paid',
             'status' => 'confirmed',
-            'stripe_payment_id' => $request->payment_intent
+            'stripe_payment_id' => $request->payment_intent_id
         ]);
 
-        return redirect()->route('bookings.user')->with('success', 'Booking confirmed successfully!');
+        return redirect()->route('bookings.user')->with('success',
+            $newBalance <= 0
+                ? 'Full payment processed successfully!'
+                : 'Deposit payment processed successfully!'
+        );
     }
 
     public function getUserBookings()
@@ -139,8 +192,8 @@ class BookingController extends Controller
         ]);
 
         $booking->update([
-            'appointment_date' => $validated['date'],
-            'appointment_time' => $validated['time'],
+            'booking_date' => $validated['date'],
+            'booking_time' => $validated['time'],
             'status' => 'rescheduled'
         ]);
 
@@ -151,13 +204,14 @@ class BookingController extends Controller
     {
         $request->validate([
             'barber_id' => 'required|exists:barbers,id',
-            'date' => 'required|date|after:today',
+            'date' => 'required|date|after_or_equal:today',
         ]);
 
         $barber = Barber::find($request->barber_id);
         $bookedSlots = $barber->bookings()
-            ->whereDate('appointment_date', $request->date)
-            ->pluck('appointment_time')
+            ->whereDate('booking_date', $request->date)
+            ->whereNotIn('status', ['cancelled'])
+            ->pluck('booking_time')
             ->toArray();
 
         $allSlots = [

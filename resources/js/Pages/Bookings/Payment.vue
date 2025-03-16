@@ -34,7 +34,15 @@
                                         <p class="font-medium">{{ booking.barber.name }}</p>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-600">Deposit Amount</p>
+                                        <p class="text-sm text-gray-600">Total Price</p>
+                                        <p class="font-medium">{{ formatCurrency(booking.service_price) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-600">{{ isBalancePayment ? 'Balance Due' : 'Deposit Required' }}</p>
+                                        <p class="font-medium">{{ formatCurrency(paymentAmount) }}</p>
+                                    </div>
+                                    <div v-if="isBalancePayment">
+                                        <p class="text-sm text-gray-600">Deposit Paid</p>
                                         <p class="font-medium">{{ formatCurrency(booking.deposit_amount) }}</p>
                                     </div>
                                 </div>
@@ -55,7 +63,7 @@
                                     :disabled="processing"
                                     :processing="processing"
                                 >
-                                    Pay {{ formatCurrency(booking.deposit_amount) }}
+                                    Pay {{ formatCurrency(paymentAmount) }}
                                 </Button>
                             </div>
                         </form>
@@ -91,6 +99,14 @@ const props = defineProps({
     },
     clientSecret: {
         type: String,
+        required: true
+    },
+    paymentAmount: {
+        type: Number,
+        required: true
+    },
+    isBalancePayment: {
+        type: Boolean,
         required: true
     }
 });

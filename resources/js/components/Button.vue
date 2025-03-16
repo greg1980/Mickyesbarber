@@ -18,6 +18,7 @@
             className
         ]"
         :disabled="disabled || processing"
+        @click="$emit('click', $event)"
     >
         <div v-if="processing" class="mr-2">
             <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -30,6 +31,8 @@
 </template>
 
 <script setup>
+const emit = defineEmits(['click']);
+
 defineProps({
     type: {
         type: String,

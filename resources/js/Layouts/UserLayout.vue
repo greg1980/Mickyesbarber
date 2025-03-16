@@ -80,13 +80,13 @@ const navigation = [
                         <template #trigger>
                             <button class="flex items-center text-sm font-medium text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none">
                                 <div class="flex items-center">
-                                    <div class="relative h-8 w-8 rounded-full overflow-hidden mr-2">
+                                    <div class="relative h-7 w-7 rounded-full overflow-hidden mr-2 flex items-center justify-center">
                                         <img v-if="user.profile_photo"
                                             :src="user.profile_photo"
-                                            class="h-full w-full object-cover"
+                                            class="h-6 w-6 object-cover"
                                             :alt="user.name" />
                                         <div v-else
-                                            class="h-full w-full flex items-center justify-center bg-gray-200 text-gray-600 text-sm font-medium uppercase">
+                                            class="h-6 w-6 flex items-center justify-center bg-gray-200 text-gray-600 text-xs font-medium uppercase">
                                             {{ user.name.charAt(0) }}
                                         </div>
                                     </div>
@@ -124,7 +124,7 @@ const navigation = [
             <div class="flex flex-col h-full">
                 <!-- Logo -->
                 <div class="flex items-center justify-center h-16 px-4 bg-white border-b border-gray-200">
-                    <Link :href="route('dashboard')" class="text-gray-900 text-xl font-bold">
+                    <Link :href="route('home')" class="text-gray-900 text-xl font-bold">
                         MickyesBarber
                     </Link>
                 </div>

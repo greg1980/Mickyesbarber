@@ -132,14 +132,57 @@
                                 <InputError :message="form.errors.notes" class="mt-2" />
                             </div>
 
+                            <!-- Payment Option -->
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700">Payment Option</label>
+                                <div class="mt-2 space-y-2">
+                                    <div class="flex items-center">
+                                        <input
+                                            type="radio"
+                                            id="deposit"
+                                            v-model="form.payment_type"
+                                            value="deposit"
+                                            class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-2 border-gray-400 cursor-pointer"
+                                        >
+                                        <label for="deposit" class="ml-3">
+                                            <span class="block text-sm font-medium text-gray-700">Pay Deposit (£6.25)</span>
+                                            <span class="block text-sm text-gray-500">Pay £6.25 now and £18.75 at the appointment</span>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input
+                                            type="radio"
+                                            id="full"
+                                            v-model="form.payment_type"
+                                            value="full"
+                                            class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-2 border-gray-400 cursor-pointer"
+                                        >
+                                        <label for="full" class="ml-3">
+                                            <span class="block text-sm font-medium text-gray-700">Pay Full Amount (£25.00)</span>
+                                            <span class="block text-sm text-gray-500">Pay the full amount now</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stripe Elements -->
+                            <div class="mt-6">
+                                <InputLabel value="Card Details" />
+                                <div id="card-element" class="mt-2 p-2 bg-white rounded-lg shadow max-w-sm"></div>
+                                <div v-if="stripeError" class="mt-2 text-sm text-red-600">{{ stripeError }}</div>
+                                <p class="mt-2 text-sm text-gray-500">
+                                    Please enter your card details to pay {{ form.payment_type === 'deposit' ? 'the deposit' : 'the full amount' }}.
+                                </p>
+                            </div>
+
                             <!-- Submit Button -->
                             <div class="flex justify-end mt-6">
                                 <Button
                                     type="submit"
-                                    :disabled="form.processing"
-                                    :processing="form.processing"
+                                    :disabled="form.processing || processing"
+                                    :processing="form.processing || processing"
                                 >
-                                    Book Appointment
+                                    Book Appointment and Pay {{ form.payment_type === 'deposit' ? '£6.25 Deposit' : '£25.00' }}
                                 </Button>
                             </div>
                         </form>
@@ -160,7 +203,11 @@ import InputError from '@/components/InputError.vue';
 import Button from '@/components/Button.vue';
 import Alert from '@/components/Alert.vue';
 import BarberSelector from '@/components/BarberSelector.vue';
-import { ref, watch, computed } from 'vue';
+import { ref, watch, computed, onMounted, onUnmounted, nextTick } from 'vue';
+import { loadStripe } from '@stripe/stripe-js';
+import { usePage } from '@inertiajs/vue3';
+import { useToast } from 'vue-toastification';
+import axios from 'axios';
 
 const props = defineProps({
     barbers: {
@@ -168,6 +215,13 @@ const props = defineProps({
         required: true
     }
 });
+
+const toast = useToast();
+const stripe = ref(null);
+const card = ref(null);
+const processing = ref(false);
+const error = ref('');
+const stripeError = ref('');
 
 // Calendar state
 const currentDate = ref(new Date());
@@ -255,12 +309,12 @@ const form = useForm({
     barber_id: '',
     date: '',
     time: '',
-    notes: ''
+    notes: '',
+    payment_type: 'deposit'
 });
 
 const availableBarberIds = ref([]);
 const isLoading = ref(false);
-const error = ref(null);
 
 const selectBarber = (barber) => {
     try {
@@ -320,21 +374,139 @@ watch(() => form.date, async (newDate) => {
     }
 }, { immediate: false });
 
-const handleSubmit = (e) => {
+// Initialize Stripe
+onMounted(async () => {
     try {
-        if (!form.date || !form.time || !form.barber_id) {
-            error.value = 'Please fill in all required fields.';
+        const stripeKey = usePage().props.stripe_key;
+        if (!stripeKey) {
+            error.value = 'Stripe key is missing';
             return;
         }
-        form.post(route('booking.store'), {
-            preserveScroll: true,
-            onError: (errors) => {
-                error.value = Object.values(errors)[0] || 'An error occurred while booking. Please try again.';
+
+        stripe.value = await loadStripe(stripeKey);
+        const elements = stripe.value.elements();
+
+        card.value = elements.create('card');
+
+        // Add card element after payment option
+        await nextTick();
+        const cardElement = document.getElementById('card-element');
+        if (cardElement) {
+            card.value.mount('#card-element');
+        }
+
+        card.value.on('change', (event) => {
+            if (event.error) {
+                stripeError.value = event.error.message;
+            } else {
+                stripeError.value = '';
             }
         });
-    } catch (err) {
-        console.error('Error submitting form:', err);
-        error.value = 'Failed to submit booking. Please try again.';
+    } catch (e) {
+        console.error('Stripe initialization error:', e);
+        error.value = 'Failed to initialize payment form';
+    }
+});
+
+onUnmounted(() => {
+    if (card.value) {
+        card.value.unmount();
+    }
+});
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (processing.value) return;
+
+    processing.value = true;
+    error.value = '';
+    stripeError.value = '';
+
+    try {
+        // Validate required fields
+        if (!form.barber_id || !form.date || !form.time) {
+            error.value = 'Please fill in all required fields.';
+            processing.value = false;
+            return;
+        }
+
+        // Always validate card details since we need them for both payment types
+        const { error: cardError } = await stripe.value.createPaymentMethod({
+            type: 'card',
+            card: card.value,
+        });
+
+        if (cardError) {
+            stripeError.value = 'Please enter valid card details.';
+            processing.value = false;
+            return;
+        }
+
+        // Create booking first
+        const bookingResponse = await axios.post(route('booking.store'), {
+            barber_id: form.barber_id,
+            date: form.date,
+            time: form.time,
+            notes: form.notes,
+            payment_type: form.payment_type
+        });
+
+        console.log('Booking response:', bookingResponse.data);
+
+        if (!bookingResponse.data || typeof bookingResponse.data.id === 'undefined') {
+            console.error('Invalid booking response:', bookingResponse.data);
+            throw new Error('Server returned an invalid booking response');
+        }
+
+        const bookingId = bookingResponse.data.id;
+        const paymentAmount = form.payment_type === 'deposit' ? 6.25 : 25.00;
+
+        // Create payment intent
+        const paymentResponse = await axios.post(route('payment.create-intent', { booking: bookingId }), {
+            payment_type: form.payment_type,
+            amount: paymentAmount
+        });
+
+        if (!paymentResponse.data || !paymentResponse.data.clientSecret) {
+            console.error('Invalid payment intent response:', paymentResponse.data);
+            throw new Error('Failed to create payment intent');
+        }
+
+        const { clientSecret } = paymentResponse.data;
+
+        // Confirm payment
+        const result = await stripe.value.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: card.value,
+            }
+        });
+
+        if (result.error) {
+            console.error('Payment confirmation error:', result.error);
+            stripeError.value = result.error.message || 'Payment failed. Please check your card details and try again.';
+            return;
+        }
+
+        if (result.paymentIntent.status === 'succeeded') {
+            // Process the successful payment
+            await axios.post(route('payment.process', { booking: bookingId }), {
+                payment_intent_id: result.paymentIntent.id,
+                amount: paymentAmount,
+                payment_type: form.payment_type
+            });
+
+            toast.success('Booking created and payment processed successfully!');
+            window.location.href = route('bookings.user');
+        }
+    } catch (e) {
+        console.error('Payment error:', e);
+        error.value = e.response?.data?.message || e.message || 'Payment failed. Please try again.';
+        if (e.response?.data?.errors) {
+            const errorMessages = Object.values(e.response.data.errors).flat();
+            error.value = errorMessages.join(' ');
+        }
+    } finally {
+        processing.value = false;
     }
 };
 </script>

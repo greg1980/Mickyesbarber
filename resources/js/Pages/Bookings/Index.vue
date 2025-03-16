@@ -86,12 +86,33 @@ async function handleDateSelected(date) {
     }
 }
 
-const getStatusClass = (status) => {
+const getStatusDisplay = (status, payment_status) => {
+    // First check payment status
+    if (payment_status === 'fully_paid') return 'Fully Paid';
+    if (payment_status === 'deposit_paid') return 'Deposit Paid';
+
+    // Then fall back to booking status
+    const displays = {
+        pending: 'Awaiting Payment',
+        confirmed: 'Confirmed',
+        cancelled: 'Cancelled',
+        completed: 'Completed',
+        rescheduled: 'Rescheduled'
+    };
+    return displays[status] || status;
+};
+
+const getStatusClass = (status, payment_status) => {
+    // First check payment status
+    if (payment_status === 'fully_paid') return 'bg-green-100 text-green-800';
+    if (payment_status === 'deposit_paid') return 'bg-blue-100 text-blue-800';
+
+    // Then fall back to booking status
     const classes = {
-        pending_payment: 'bg-yellow-100 text-yellow-800',
+        pending: 'bg-yellow-100 text-yellow-800',
         confirmed: 'bg-green-100 text-green-800',
         cancelled: 'bg-red-100 text-red-800',
-        completed: 'bg-blue-100 text-blue-800',
+        completed: 'bg-gray-100 text-gray-800',
         rescheduled: 'bg-purple-100 text-purple-800'
     };
     return classes[status] || 'bg-gray-100 text-gray-800';
@@ -128,18 +149,6 @@ const formatTime = (time) => {
     }
 };
 
-const getStatusDisplay = (status) => {
-    const displays = {
-        pending: 'Awaiting Payment',
-        pending_payment: 'Awaiting Payment',
-        confirmed: 'Confirmed',
-        cancelled: 'Cancelled',
-        completed: 'Completed',
-        rescheduled: 'Rescheduled'
-    };
-    return displays[status] || status;
-};
-
 const formatBarberName = (name) => {
     if (!name) return '';
     return name.split(' ')
@@ -168,6 +177,37 @@ const formatPrice = (value) => {
     const number = parseFloat(value) || 0;
     return number.toFixed(2);
 };
+
+const isWithin24Hours = (bookingDate, bookingTime) => {
+    try {
+        console.log('Checking time for:', { bookingDate, bookingTime });
+
+        // Create a new Date object for the booking time
+        const [hours, minutes] = bookingTime.split(':');
+        const bookingDateTime = new Date(bookingDate);
+        bookingDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+        // Get current time
+        const now = new Date();
+
+        // Calculate the difference in hours
+        const diffHours = (bookingDateTime - now) / (1000 * 60 * 60);
+
+        console.log('Time calculation:', {
+            bookingDateTime: bookingDateTime.toLocaleString(),
+            now: now.toLocaleString(),
+            diffHours: diffHours,
+            isWithin24Hours: diffHours <= 24,
+            bookingTimestamp: bookingDateTime.getTime(),
+            nowTimestamp: now.getTime()
+        });
+
+        return diffHours <= 24;
+    } catch (error) {
+        console.error('Error in isWithin24Hours:', error);
+        return true; // Default to true (hiding cancel button) if there's an error
+    }
+};
 </script>
 
 <template>
@@ -188,12 +228,12 @@ const formatPrice = (value) => {
                                 Show {{ showHistorical ? 'Active' : 'Historical' }} Bookings
                             </Button>
                         </div>
-                        <Button
-                            :href="route('dashboard')"
-                            variant="primary"
+                        <Link
+                            :href="route('bookings.create')"
+                            class="inline-flex items-center px-3 py-2 bg-blue-600 border border-transparent rounded-full font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 w-fit"
                         >
                             Book New Appointment
-                        </Button>
+                        </Link>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -238,9 +278,9 @@ const formatPrice = (value) => {
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                            :class="getStatusClass(booking.status)"
+                                            :class="getStatusClass(booking.status, booking.payment_status)"
                                         >
-                                            {{ getStatusDisplay(booking.status) }}
+                                            {{ getStatusDisplay(booking.status, booking.payment_status) }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -255,7 +295,7 @@ const formatPrice = (value) => {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex space-x-2">
                                             <Button
-                                                v-if="['pending', 'pending_payment', 'awaiting_payment', 'deposit_paid', 'confirmed'].includes(booking.status) && parseFloat(booking.balance_amount) > 0"
+                                                v-if="booking.payment_status !== 'fully_paid' && parseFloat(booking.balance_amount) > 0"
                                                 @click="openPaymentModal(booking)"
                                                 class="text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg transform transition hover:scale-105 focus:ring-emerald-500"
                                                 type="button"
@@ -263,11 +303,11 @@ const formatPrice = (value) => {
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                                 </svg>
-                                                {{ parseFloat(booking.deposit_amount) > 0 ? 'Pay Balance' : 'Pay Deposit' }}
-                                                (£{{ formatPrice(parseFloat(booking.deposit_amount) > 0 ? booking.balance_amount : 6.25) }})
+                                                {{ booking.payment_status === 'pending' ? 'Pay Deposit' : 'Pay Balance' }}
+                                                (£{{ formatPrice(booking.payment_status === 'pending' ? 6.25 : booking.balance_amount) }})
                                             </Button>
                                             <Button
-                                                v-if="['pending', 'pending_payment', 'awaiting_payment', 'deposit_paid'].includes(booking.status)"
+                                                v-if="['pending', 'deposit_paid'].includes(booking.payment_status) && !isWithin24Hours(booking.booking_date, booking.booking_time)"
                                                 @click="$inertia.post(route('bookings.cancel', booking.id))"
                                                 variant="danger"
                                                 class="text-[8px] px-1.5 py-0.5 min-w-[40px]"
@@ -275,15 +315,7 @@ const formatPrice = (value) => {
                                                 Cancel
                                             </Button>
                                             <Button
-                                                v-if="booking.status === 'confirmed'"
-                                                @click="$inertia.post(route('barber.complete-appointment', booking.id))"
-                                                variant="success"
-                                                class="text-[8px] px-1.5 py-0.5 min-w-[40px]"
-                                            >
-                                                Complete
-                                            </Button>
-                                            <Button
-                                                v-if="['confirmed', 'deposit_paid'].includes(booking.status)"
+                                                v-if="['deposit_paid', 'fully_paid'].includes(booking.payment_status)"
                                                 @click="openRescheduleModal(booking)"
                                                 variant="info"
                                                 class="text-[8px] px-1.5 py-0.5 min-w-[40px]"
