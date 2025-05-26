@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\BarberRating;
 use App\Models\Transformation;
+use App\Http\Controllers\BookingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +29,7 @@ Route::middleware([
 
 Route::get('/barber/monthly-ratings', function () {
     $user = auth()->user();
-    $barber = $user->barber;
+    $barber = $user->barber ?? null;
     if (!$barber) {
         return response()->json([]);
     }
@@ -52,3 +53,6 @@ Route::get('/barber/monthly-ratings', function () {
     }
     return response()->json($result);
 });
+
+Route::get('/available-barbers', [App\Http\Controllers\BookingController::class, 'getAvailableBarbers']);
+Route::get('/available-slots', [BookingController::class, 'getAvailableSlots']);

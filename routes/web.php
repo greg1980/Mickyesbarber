@@ -141,8 +141,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
 });
 
-Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers']);
-Route::get('/api/available-slots', [BookingController::class, 'getAvailableSlots']);
+// Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers']);
+// Route::get('/api/available-slots', [BookingController::class, 'getAvailableSlots']);
+// (Moved to routes/api.php)
 
 Route::get('/test-profile', function () {
     return view('test-profile');

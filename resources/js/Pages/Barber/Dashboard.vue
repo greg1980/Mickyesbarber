@@ -45,10 +45,10 @@ const doughnutOptions = {
 }
 
 const barData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+  labels: [],
   datasets: [{
     label: 'Monthly Rating',
-    data: [4.5, 4.8, 4.2, 4.7, 4.9],
+    data: [],
     backgroundColor: '#3b82f6',
     borderRadius: 6,
     barPercentage: 0.7,

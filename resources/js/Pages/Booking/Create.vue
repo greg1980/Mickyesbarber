@@ -253,13 +253,20 @@ function isPastDate(date) {
   today.setHours(0, 0, 0, 0)
   return date < today
 }
+function formatDateLocal(date) {
+  // Formats a JS Date object as YYYY-MM-DD in local time
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 function isSelectedDate(date) {
   if (!date || !form.value.date) return false
-  return date.toISOString().split('T')[0] === form.value.date
+  return formatDateLocal(date) === form.value.date
 }
 function selectDate(date) {
   if (!date || isPastDate(date)) return
-  form.value.date = date.toISOString().split('T')[0]
+  form.value.date = formatDateLocal(date)
   showCalendar.value = false
 }
 
