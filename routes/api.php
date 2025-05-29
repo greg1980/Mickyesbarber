@@ -25,33 +25,41 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     });
-});
 
-Route::get('/barber/monthly-ratings', function () {
-    $user = auth()->user();
-    $barber = $user->barber ?? null;
-    if (!$barber) {
-        return response()->json([]);
-    }
-    $raw = Transformation::where('barber_id', $barber->id)
-        ->whereNotNull('rating')
-        ->selectRaw('MONTH(created_at) as month, AVG(rating) as avg_rating')
-        ->groupBy('month')
-        ->orderBy('month')
-        ->pluck('avg_rating', 'month')
-        ->toArray();
-    $months = [
-        1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun',
-        7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
-    ];
-    $result = [];
-    foreach ($months as $num => $name) {
-        $result[] = [
-            'month' => $name,
-            'rating' => isset($raw[$num]) ? round($raw[$num], 2) : null
+    Route::get('/barber/monthly-ratings', function () {
+        $user = auth()->user();
+        $barber = $user->barber ?? null;
+        if (!$barber) {
+            return response()->json([]);
+        }
+        $raw = Transformation::where('barber_id', $barber->id)
+            ->whereNotNull('rating')
+            ->selectRaw('MONTH(created_at) as month, AVG(rating) as avg_rating')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('avg_rating', 'month')
+            ->toArray();
+        $months = [
+            1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'May', 6 => 'Jun',
+            7 => 'Jul', 8 => 'Aug', 9 => 'Sep', 10 => 'Oct', 11 => 'Nov', 12 => 'Dec'
         ];
-    }
-    return response()->json($result);
+        $result = [];
+        foreach ($months as $num => $name) {
+            $result[] = [
+                'month' => $name,
+                'rating' => isset($raw[$num]) ? round($raw[$num], 2) : null
+            ];
+        }
+        return response()->json($result);
+    });
+
+    Route::get('/debug-user', function () {
+        $user = auth()->user();
+        return [
+            'user' => $user,
+            'barber' => $user?->barber,
+        ];
+    });
 });
 
 Route::get('/available-barbers', [App\Http\Controllers\BookingController::class, 'getAvailableBarbers']);

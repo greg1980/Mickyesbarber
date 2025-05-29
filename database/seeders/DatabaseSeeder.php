@@ -18,25 +18,34 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        // Create a user and a barber
-        $user = User::factory()->create([
-            'name' => 'Test User',
+        // Create a barber user
+        $barberUser = User::factory()->create([
+            'name' => 'Test Barber',
             'email' => 'test@example.com',
             'password' => bcrypt('password123'),
+            'role' => 'barber',
         ]);
-        $barber = Barber::factory()->create(['user_id' => $user->id]);
+        $barber = Barber::factory()->create(['user_id' => $barberUser->id]);
 
-        // Create bookings for this barber
+        // Create a customer user
+        $customerUser = User::factory()->create([
+            'name' => 'Test Customer',
+            'email' => 'customer@example.com',
+            'password' => bcrypt('password123'),
+            'role' => 'customer',
+        ]);
+
+        // Create bookings for this barber with the customer
         $bookings = Booking::factory()
             ->count(10)
-            ->for($user, 'user')
+            ->for($customerUser, 'user')  // Use customer as the booking user
             ->for($barber, 'barber')
-            ->create();
+            ->create(['status' => 'completed']); // Ensure bookings are completed
 
         // Create transformations for this barber and these bookings
         foreach ($bookings as $booking) {
             Transformation::factory()
-                ->for($user, 'user')
+                ->for($customerUser, 'user')  // Use customer as the transformation user
                 ->for($barber, 'barber')
                 ->for($booking, 'booking')
                 ->create();

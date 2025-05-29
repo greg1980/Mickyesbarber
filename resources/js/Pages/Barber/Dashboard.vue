@@ -155,7 +155,7 @@ function submitAvailability() {
 
 const fetchMonthlyRatings = async () => {
   try {
-    const response = await axios.get('/api/barber/monthly-ratings');
+    const response = await axios.get('/api/barber/monthly-ratings', { withCredentials: true });
     barData.labels = response.data.map(item => item.month);
     barData.datasets[0].data = response.data.map(item => item.rating);
   } catch (error) {
