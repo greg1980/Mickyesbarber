@@ -12,6 +12,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TransformationController;
 use App\Http\Controllers\ProfilePhotoController;
+use App\Http\Controllers\BarberStatsController;
 
 // Public routes
 Route::get('/', function () {
@@ -73,6 +74,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('barber.schedule.update');
         Route::get('/barber/appointments', [BarberDashboardController::class, 'appointments'])
             ->name('barber.appointments');
+        Route::get('/barber/monthly-ratings', [BarberStatsController::class, 'monthlyRatings']);
+        Route::get('/barber/todays-appointments-count', [BarberStatsController::class, 'todaysAppointmentsCount']);
+        Route::get('/barber/todays-completed-appointments-count', [BarberStatsController::class, 'todaysCompletedAppointmentsCount']);
+        Route::get('/barber/monthly-completed-appointments-count', [BarberStatsController::class, 'monthlyCompletedAppointmentsCount']);
     });
 
     // Customer routes
@@ -125,6 +130,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/transformations', [TransformationController::class, 'store'])->name('transformations.store');
     Route::delete('/transformations/{id}', [TransformationController::class, 'destroy'])->name('transformations.destroy');
     Route::post('/transformations/{id}/approve', [TransformationController::class, 'approve'])->middleware('role:admin')->name('transformations.approve');
+
 });
 
 // Profile routes

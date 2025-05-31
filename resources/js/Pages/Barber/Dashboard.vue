@@ -4,7 +4,7 @@ import SidebarLayout from '@/Layouts/SidebarLayout.vue'
 import { defineProps } from 'vue'
 import { Doughnut, Bar } from 'vue-chartjs'
 import { Chart, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import axios from 'axios'
 
@@ -13,30 +13,100 @@ Chart.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearSca
 const DoughnutChart = Doughnut
 const BarChart = Bar
 
-const doughnutData1 = {
-  labels: ['A', 'B', 'C'],
-  datasets: [{
-    data: [30, 50, 20],
-    backgroundColor: ['#fbbf24', '#3b82f6', '#10b981'],
-    borderWidth: 0
-  }]
+const todaysAppointmentsCount = ref(0)
+const todaysCompletedAppointmentsCount = ref(0)
+const monthlyCompletedAppointmentsCount = ref(0)
+
+const fetchTodaysAppointmentsCount = async () => {
+  try {
+    const response = await axios.get('/barber/todays-appointments-count', { withCredentials: true });
+    todaysAppointmentsCount.value = response.data.count;
+  } catch (error) {
+    todaysAppointmentsCount.value = 0;
+  }
 }
-const doughnutData2 = {
-  labels: ['X', 'Y', 'Z'],
-  datasets: [{
-    data: [10, 60, 30],
-    backgroundColor: ['#f87171', '#6366f1', '#fbbf24'],
-    borderWidth: 0
-  }]
+
+const fetchTodaysCompletedAppointmentsCount = async () => {
+  try {
+    const response = await axios.get('/barber/todays-completed-appointments-count', { withCredentials: true });
+    todaysCompletedAppointmentsCount.value = response.data.count;
+  } catch (error) {
+    todaysCompletedAppointmentsCount.value = 0;
+  }
 }
-const doughnutData3 = {
-  labels: ['P', 'Q', 'R'],
-  datasets: [{
-    data: [40, 40, 20],
-    backgroundColor: ['#10b981', '#f59e42', '#3b82f6'],
-    borderWidth: 0
-  }]
+
+const fetchMonthlyCompletedAppointmentsCount = async () => {
+  try {
+    const response = await axios.get('/barber/monthly-completed-appointments-count', { withCredentials: true });
+    monthlyCompletedAppointmentsCount.value = response.data.count;
+  } catch (error) {
+    monthlyCompletedAppointmentsCount.value = 0;
+  }
 }
+
+const doughnutData1 = computed(() => {
+  if (todaysAppointmentsCount.value === 0) {
+    return {
+      labels: ['No Appointments'],
+      datasets: [{
+        data: [1],
+        backgroundColor: ['#e5e7eb'],
+        borderWidth: 0
+      }]
+    }
+  }
+  return {
+    labels: ['Today'],
+    datasets: [{
+      data: [todaysAppointmentsCount.value],
+      backgroundColor: ['#fbbf24'],
+      borderWidth: 0
+    }]
+  }
+})
+
+const doughnutData2 = computed(() => {
+  if (todaysCompletedAppointmentsCount.value === 0) {
+    return {
+      labels: ['No Completed'],
+      datasets: [{
+        data: [1],
+        backgroundColor: ['#e5e7eb'],
+        borderWidth: 0
+      }]
+    }
+  }
+  return {
+    labels: ['Completed'],
+    datasets: [{
+      data: [todaysCompletedAppointmentsCount.value],
+      backgroundColor: ['#3b82f6'],
+      borderWidth: 0
+    }]
+  }
+})
+
+const doughnutData3 = computed(() => {
+  if (monthlyCompletedAppointmentsCount.value === 0) {
+    return {
+      labels: ['No Completed'],
+      datasets: [{
+        data: [1],
+        backgroundColor: ['#e5e7eb'],
+        borderWidth: 0
+      }]
+    }
+  }
+  return {
+    labels: ['Completed'],
+    datasets: [{
+      data: [monthlyCompletedAppointmentsCount.value],
+      backgroundColor: ['#10b981'],
+      borderWidth: 0
+    }]
+  }
+})
+
 const doughnutOptions = {
   cutout: '70%',
   plugins: { legend: { display: false } },
@@ -44,7 +114,7 @@ const doughnutOptions = {
   maintainAspectRatio: false
 }
 
-const barData = {
+const barData = ref({
   labels: [],
   datasets: [{
     label: 'Monthly Rating',
@@ -54,9 +124,19 @@ const barData = {
     barPercentage: 0.7,
     categoryPercentage: 0.7
   }]
-}
+})
+
 const barOptions = {
-  plugins: { legend: { display: false } },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label: function(context) {
+          return `Rating: ${context.raw?.toFixed(2) || 'N/A'}`;
+        }
+      }
+    }
+  },
   responsive: true,
   maintainAspectRatio: false,
   layout: { padding: 10 },
@@ -68,7 +148,11 @@ const barOptions = {
     y: {
       grid: { display: false },
       beginAtZero: true,
-      ticks: { font: { size: 14 } }
+      max: 5,
+      ticks: {
+        font: { size: 14 },
+        stepSize: 1
+      }
     }
   }
 }
@@ -155,15 +239,68 @@ function submitAvailability() {
 
 const fetchMonthlyRatings = async () => {
   try {
-    const response = await axios.get('/api/barber/monthly-ratings', { withCredentials: true });
-    barData.labels = response.data.map(item => item.month);
-    barData.datasets[0].data = response.data.map(item => item.rating);
+    const response = await axios.get('/barber/monthly-ratings', {
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    });
+
+    console.log('API Response:', response.data); // Debug log
+
+    if (response.data && Array.isArray(response.data)) {
+      barData.value = {
+        labels: response.data.map(item => item.month),
+        datasets: [{
+          label: 'Monthly Rating',
+          data: response.data.map(item => item.rating),
+          backgroundColor: '#3b82f6',
+          borderRadius: 6,
+          barPercentage: 0.7,
+          categoryPercentage: 0.7
+        }]
+      };
+    } else {
+      console.error('Invalid data format received:', response.data);
+      // Set default data if the response is invalid
+      barData.value = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Monthly Rating',
+          data: Array(12).fill(0),
+          backgroundColor: '#3b82f6',
+          borderRadius: 6,
+          barPercentage: 0.7,
+          categoryPercentage: 0.7
+        }]
+      };
+    }
   } catch (error) {
-    console.error('Error fetching monthly ratings:', error);
+    console.error('Error fetching monthly ratings:', error.response?.data || error.message);
+    // Set default data on error
+    barData.value = {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [{
+        label: 'Monthly Rating',
+        data: Array(12).fill(0),
+        backgroundColor: '#3b82f6',
+        borderRadius: 6,
+        barPercentage: 0.7,
+        categoryPercentage: 0.7
+      }]
+    };
   }
 };
 
-fetchMonthlyRatings();
+// Call fetchMonthlyRatings when component is mounted
+onMounted(() => {
+  fetchTodaysAppointmentsCount();
+  fetchTodaysCompletedAppointmentsCount();
+  fetchMonthlyCompletedAppointmentsCount();
+  fetchMonthlyRatings();
+});
 </script>
 
 <template>
@@ -175,20 +312,38 @@ fetchMonthlyRatings();
             <div class="w-full px-4 pt-8 pb-4">
                 <h1 class="text-xl font-bold mb-6">Barber Dashboard</h1>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center">
-                        <h3 class="text-lg font-semibold mb-2">Doughnut 1</h3>
+                    <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center relative">
+                        <h3 class="text-lg font-semibold mb-2">Today's Appointments</h3>
                         <DoughnutChart :data="doughnutData1" :options="doughnutOptions" style="max-width:120px; height:128px;" />
+                        <div
+                          class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-700 pointer-events-none"
+                          style="top: 40px; left: 0; right: 0; bottom: 0;"
+                        >
+                          {{ todaysAppointmentsCount }}
+                        </div>
                     </div>
-                    <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center">
-                        <h3 class="text-lg font-semibold mb-2">Doughnut 2</h3>
+                    <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center relative">
+                        <h3 class="text-lg font-semibold mb-2">Today's Completed</h3>
                         <DoughnutChart :data="doughnutData2" :options="doughnutOptions" style="max-width:120px; height:128px;" />
+                        <div
+                          class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-700 pointer-events-none"
+                          style="top: 40px; left: 0; right: 0; bottom: 0;"
+                        >
+                          {{ todaysCompletedAppointmentsCount }}
+                        </div>
                     </div>
-                    <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center">
-                        <h3 class="text-lg font-semibold mb-2">Doughnut 3</h3>
+                    <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center relative">
+                        <h3 class="text-lg font-semibold mb-2">This Month's Completed</h3>
                         <DoughnutChart :data="doughnutData3" :options="doughnutOptions" style="max-width:120px; height:128px;" />
+                        <div
+                          class="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-700 pointer-events-none"
+                          style="top: 40px; left: 0; right: 0; bottom: 0;"
+                        >
+                          {{ monthlyCompletedAppointmentsCount }}
+                        </div>
                     </div>
                     <div class="bg-white shadow-lg p-6 w-full flex flex-col items-center h-64 justify-center">
-                        <h3 class="text-lg font-semibold mb-2">Bar Chart</h3>
+                        <h3 class="text-lg font-semibold mb-2">Monthly Ratings</h3>
                         <BarChart :data="barData" :options="barOptions" style="max-width:180px; height:128px;" />
                     </div>
                 </div>

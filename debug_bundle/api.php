@@ -22,6 +22,7 @@ use App\Http\Controllers\BarberStatsController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/available-barbers', [BookingController::class, 'getAvailableBarbers']);
     Route::get('/available-slots', [BookingController::class, 'getAvailableSlots']);
+    Route::get('/barber/monthly-ratings', [BarberStatsController::class, 'monthlyRatings']);
 });
 
 

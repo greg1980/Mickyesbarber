@@ -70,11 +70,20 @@
 
 <script setup>
 import { usePage, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import { HomeIcon, CalendarIcon, SparklesIcon, UserPlusIcon, UsersIcon, UserIcon, ArrowLeftOnRectangleIcon, BellIcon } from '@heroicons/vue/24/outline'
 
 const user = usePage().props.auth.user
 const dropdownOpen = ref(false)
+
+onMounted(async () => {
+  try {
+    await axios.get('/sanctum/csrf-cookie')
+  } catch (err) {
+    console.error('Failed to init Sanctum CSRF', err)
+  }
+})
 </script>
 
 <style scoped>
