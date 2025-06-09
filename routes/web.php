@@ -13,6 +13,9 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\TransformationController;
 use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\BarberStatsController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Customer\CustomerStatsController;
+use App\Http\Controllers\BarberRegistrationController;
 
 // Public routes
 Route::get('/', function () {
@@ -118,6 +121,9 @@ Route::middleware(['auth'])->group(function () {
     // Add cancel booking route
     Route::post('/booking/{booking}/cancel', [BookingController::class, 'cancelBooking'])->name('booking.cancel');
 
+    // Add check-in route
+    Route::post('/booking/{booking}/check-in', [BookingController::class, 'checkIn'])->name('booking.check-in');
+
     // Add reschedule booking route
     Route::post('/booking/{booking}/reschedule', [BookingController::class, 'reschedule'])->name('booking.reschedule');
 
@@ -131,6 +137,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/transformations/{id}', [TransformationController::class, 'destroy'])->name('transformations.destroy');
     Route::post('/transformations/{id}/approve', [TransformationController::class, 'approve'])->middleware('role:admin')->name('transformations.approve');
 
+    // --- AJAX/AUTHENTICATED ENDPOINTS ---
+    // Returns the next upcoming appointment for the logged-in user (barber or customer)
+    Route::get('/notifications', [NotificationController::class, 'nextAppointment'])->name('notifications.next');
+
+    // Notification routes
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    });
 });
 
 // Profile routes
@@ -145,6 +161,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
     Route::get('/customer/bookings', [CustomerDashboardController::class, 'bookings'])->name('customer.bookings');
     Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
+
+    // Add available barbers and slots endpoints for booking
+    Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers'])->name('api.available-barbers');
+    Route::get('/api/available-slots', [BookingController::class, 'getAvailableSlots'])->name('api.available-slots');
+
+    // Barber routes
+    Route::middleware(['auth', 'role:barber'])->prefix('barber')->name('barber.')->group(function () {
+        Route::get('/dashboard', [BarberDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/appointments', [BarberDashboardController::class, 'appointments'])->name('appointments');
+        Route::patch('/appointments/{booking}/status', [BarberDashboardController::class, 'updateAppointmentStatus'])->name('appointments.status');
+        Route::post('/toggle-availability', [BarberDashboardController::class, 'toggleAvailability'])->name('availability.toggle');
+        Route::post('/update-schedule', [BarberDashboardController::class, 'updateSchedule'])->name('schedule.update');
+        Route::get('/monthly-ratings', [BarberStatsController::class, 'monthlyRatings']);
+        Route::get('/todays-appointments-count', [BarberStatsController::class, 'todaysAppointmentsCount']);
+        Route::get('/todays-completed-appointments-count', [BarberStatsController::class, 'todaysCompletedAppointmentsCount']);
+        Route::get('/monthly-completed-appointments-count', [BarberStatsController::class, 'monthlyCompletedAppointmentsCount']);
+    });
+
+    Route::get('/customer/stats/monthly-spending', [CustomerStatsController::class, 'monthlySpending'])->name('customer.stats.monthly-spending');
+    Route::get('/customer/stats/barber-booking-distribution', [CustomerStatsController::class, 'barberBookingDistribution'])->name('customer.stats.barber-booking-distribution');
+    Route::get('/customer/stats/favourite-barber', [CustomerStatsController::class, 'favouriteBarber'])->name('customer.stats.favourite-barber');
+    Route::get('/customer/stats/next-appointment', [CustomerStatsController::class, 'nextAppointment'])->name('customer.stats.next-appointment');
+
+    Route::get('/register/barber', [BarberRegistrationController::class, 'create'])->name('barber.register');
+    Route::post('/register/barber', [BarberRegistrationController::class, 'store'])->name('barber.register.store');
 });
 
 // Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers']);

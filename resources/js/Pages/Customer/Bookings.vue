@@ -7,6 +7,9 @@
                 <div v-if="successMessage" class="mb-4 px-4 py-3 rounded bg-green-100 text-green-800 font-semibold text-center transition-opacity duration-500">
                     {{ successMessage }}
                 </div>
+                <div v-if="!isOnline" class="mb-4 px-4 py-3 rounded bg-yellow-100 text-yellow-800 font-semibold text-center">
+                    You're currently offline. Viewing cached data.
+                </div>
                 <div class="mb-4 flex gap-2">
                     <button
                         class="px-4 py-2 rounded border"
@@ -62,15 +65,27 @@
                                     £{{ formatPrice(booking.service_price) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    £{{ formatPrice(booking.deposit_amount) }}
+                                    £{{ formatPrice(booking.amount_paid) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    £{{ formatPrice(booking.balance_amount) }}
+                                    £{{ formatPrice(booking.service_price - booking.amount_paid) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <button v-if="booking.status !== 'cancelled'" class="text-blue-600 hover:underline mr-2" @click="openPaymentModal(booking)">Pay</button>
-                                    <button v-if="booking.status !== 'cancelled'" class="text-red-600 hover:underline mr-2" @click="handleCancel(booking)">Cancel</button>
-                                    <button v-if="booking.status !== 'cancelled' && !isPastBooking(booking)" class="text-green-600 hover:underline" @click="openRescheduleModal(booking)">Reschedule</button>
+                                    <button
+                                        v-if="booking.status !== 'cancelled' && !isPastBooking(booking)"
+                                        class="text-blue-600 hover:underline mr-2"
+                                        @click="openPaymentModal(booking)"
+                                    >Pay</button>
+                                    <button
+                                        v-if="booking.status !== 'cancelled' && !isPastBooking(booking)"
+                                        class="text-red-600 hover:underline mr-2"
+                                        @click="handleCancel(booking)"
+                                    >Cancel</button>
+                                    <button
+                                        v-if="booking.status !== 'cancelled' && !isPastBooking(booking)"
+                                        class="text-green-600 hover:underline"
+                                        @click="openRescheduleModal(booking)"
+                                    >Reschedule</button>
                                 </td>
                             </tr>
                             <tr v-if="!(viewMode === 'upcoming' ? filteredBookings.length : pastOrCancelledBookings.length)">
@@ -143,7 +158,7 @@
 import { Head } from '@inertiajs/vue3'
 import SidebarLayout from '@/Layouts/SidebarLayout.vue'
 import PaymentModal from '@/Components/PaymentModal.vue'
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { router } from '@inertiajs/vue3'
 
 const props = defineProps({
@@ -169,17 +184,22 @@ const selectedBarberId = ref(null)
 const viewMode = ref('upcoming') // 'upcoming' or 'past'
 let rescheduleBooking = null
 
-const filteredBookings = computed(() =>
-  props.bookings.filter(
-    booking => booking.status !== 'cancelled' && !isPastBooking(booking)
-  )
-)
+// Add new refs for offline state
+const isOnline = ref(navigator.onLine)
 
-const pastOrCancelledBookings = computed(() =>
-  props.bookings.filter(
-    booking => booking.status === 'cancelled' || isPastBooking(booking)
-  )
-)
+const filteredBookings = computed(() => {
+    const filtered = props.bookings.filter(
+        booking => booking.status !== 'cancelled' && !isPastBooking(booking)
+    )
+    console.log('Filtered Bookings:', filtered)
+    return filtered
+})
+
+const pastOrCancelledBookings = computed(() => {
+    return props.bookings.filter(
+        booking => booking.status === 'cancelled' || isPastBooking(booking)
+    )
+})
 
 function openPaymentModal(booking) {
     selectedBooking.value = booking
@@ -197,8 +217,24 @@ function formatDate(date) {
 }
 function formatTime(time) {
     if (!time) return '';
-    // If time is a full datetime, extract time part
-    if (time.length > 5) return new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // If time is in HH:mm:ss or HH:mm format
+    if (/^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
+        const [h, m] = time.split(':');
+        const hour = parseInt(h, 10);
+        const minute = m;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+        return `${hour12}:${minute} ${ampm}`;
+    }
+    // If time is a full ISO string, extract time part in local time
+    if (time.length > 5) {
+        const d = new Date(time);
+        const hour = d.getHours();
+        const minute = d.getMinutes().toString().padStart(2, '0');
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+        return `${hour12}:${minute} ${ampm}`;
+    }
     return time;
 }
 function formatPrice(value) {
@@ -414,19 +450,21 @@ function isPastBooking(booking) {
     }
 
     const [hours, minutes] = timeStr.split(':');
-    const bookingDateTime = new Date(
+    // Use Date.UTC to avoid timezone issues
+    const bookingDateTimeUTC = Date.UTC(
         Number(dateStr.slice(0, 4)),
         Number(dateStr.slice(5, 7)) - 1,
         Number(dateStr.slice(8, 10)),
         Number(hours),
         Number(minutes)
     );
-    console.log('Booking:', booking.booking_date, booking.booking_time, 'Parsed:', bookingDateTime, 'Now:', new Date());
-    if (isNaN(bookingDateTime.getTime())) {
+    const nowUTC = Date.now();
+    console.log('Booking:', booking.booking_date, booking.booking_time, 'Parsed UTC:', new Date(bookingDateTimeUTC), 'Now:', new Date(nowUTC));
+    if (isNaN(bookingDateTimeUTC)) {
         console.warn('Invalid booking date/time:', booking.booking_date, booking.booking_time);
         return false;
     }
-    return bookingDateTime < new Date();
+    return bookingDateTimeUTC < nowUTC;
 }
 
 // Debug: Log the profile photo URL for each booking

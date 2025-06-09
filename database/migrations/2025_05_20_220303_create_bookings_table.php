@@ -18,8 +18,8 @@ return new class extends Migration
             $table->date('booking_date');
             $table->time('booking_time');
             $table->decimal('service_price', 8, 2);
-            $table->decimal('deposit_amount', 8, 2)->default(0);
-            $table->decimal('balance_amount', 8, 2)->default(0);
+            $table->decimal('amount_paid', 8, 2)->default(0);
+            $table->boolean('deposit_paid')->default(false);
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['pending', 'partial', 'completed'])->default('pending');
             $table->text('notes')->nullable();

@@ -13,6 +13,8 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Service worker registration removed. Offline feature disabled.
+
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     resolve: (name) =>

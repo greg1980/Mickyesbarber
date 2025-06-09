@@ -19,10 +19,23 @@ class BookingFactory extends Factory
             'booking_date' => $this->faker->date(),
             'booking_time' => $this->faker->time('H:i'),
             'service_price' => $this->faker->numberBetween(20, 100),
-            'deposit_amount' => $this->faker->numberBetween(5, 25),
-            'balance_amount' => $this->faker->numberBetween(5, 75),
             'status' => 'confirmed',
             'notes' => $this->faker->sentence(),
+            'amount_paid' => $this->faker->randomElement([
+                // Unpaid
+                0,
+                // Deposit paid
+                function() {
+                    $price = $this->faker->numberBetween(20, 100);
+                    return round($price * 0.10, 2);
+                },
+                // Fully paid
+                function() {
+                    $price = $this->faker->numberBetween(20, 100);
+                    return $price;
+                }
+            ]),
+            'deposit_paid' => $this->faker->boolean(),
         ];
     }
 }

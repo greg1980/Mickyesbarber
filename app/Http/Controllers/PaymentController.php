@@ -41,7 +41,7 @@ class PaymentController extends Controller
             // Calculate amount based on payment type
             $amountToCharge = $request->payment_type === 'full'
                 ? $booking->service_price
-                : ($booking->service_price * 0.25); // 25% deposit
+                : ($booking->service_price * 0.10); // 10% deposit
 
             // Convert amount to cents
             $amountInCents = (int) round($amountToCharge * 100);
@@ -93,17 +93,17 @@ class PaymentController extends Controller
 
             if ($request->payment_type === 'deposit') {
                 $booking->update([
-                    'deposit_amount' => $paymentAmount,
-                    'balance_amount' => $booking->service_price - $paymentAmount,
-                    'payment_status' => 'deposit_paid',
+                    'amount_paid' => $paymentAmount,
+                    'deposit_paid' => true,
+                    'payment_status' => 'partial',
                     'status' => 'confirmed',
                     'stripe_payment_id' => $request->payment_intent_id
                 ]);
             } else {
                 $booking->update([
-                    'deposit_amount' => $booking->service_price,
-                    'balance_amount' => 0,
-                    'payment_status' => 'fully_paid',
+                    'amount_paid' => $booking->service_price,
+                    'deposit_paid' => true,
+                    'payment_status' => 'completed',
                     'status' => 'confirmed',
                     'stripe_payment_id' => $request->payment_intent_id
                 ]);
@@ -111,8 +111,7 @@ class PaymentController extends Controller
 
             Log::info('Payment processed successfully', [
                 'booking_id' => $booking->id,
-                'deposit_amount' => $booking->deposit_amount,
-                'balance_amount' => $booking->balance_amount,
+                'amount_paid' => $booking->amount_paid,
                 'payment_status' => $booking->payment_status,
                 'status' => $booking->status
             ]);

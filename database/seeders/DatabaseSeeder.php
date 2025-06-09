@@ -58,5 +58,9 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('Gregdognba123@'),
             'role' => 'admin',
         ]);
+
+        $this->call([
+            NotificationSeeder::class,
+        ]);
     }
 }

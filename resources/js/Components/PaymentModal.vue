@@ -20,15 +20,29 @@
                         <div class="text-gray-600">Total Price:</div>
                         <div>£{{ formatPrice(booking?.service_price) }}</div>
 
-                        <div class="text-gray-600">Deposit Paid:</div>
-                        <div>£{{ formatPrice(booking?.deposit_amount) }}</div>
+                        <div class="text-gray-600">Amount Paid:</div>
+                        <div>£{{ formatPrice(booking?.amount_paid) }}</div>
 
                         <div class="text-gray-600 font-semibold">Balance Due:</div>
-                        <div class="font-semibold">£{{ formatPrice(booking?.balance_amount) }}</div>
+                        <div class="font-semibold">£{{ formatPrice(balanceDue) }}</div>
                     </div>
                 </div>
 
-                <div class="mb-6">
+                <!-- Payment Options -->
+                <div v-if="booking.amount_paid == 0" class="mb-6">
+                    <h3 class="mb-2 font-semibold">How would you like to pay?</h3>
+                    <label class="block mb-2">
+                        <input type="radio" v-model="paymentType" value="deposit" />
+                        <span class="ml-2">Pay 10% deposit (£{{ depositAmount }})</span>
+                    </label>
+                    <label class="block mb-4">
+                        <input type="radio" v-model="paymentType" value="full" />
+                        <span class="ml-2">Pay full amount (£{{ formatPrice(booking?.service_price) }})</span>
+                    </label>
+                </div>
+
+                <!-- Card input only if paymentType is selected or balance due -->
+                <div v-if="(booking.amount_paid == 0 && paymentType) || (booking.deposit_paid && balanceDue > 0)" class="mb-6">
                     <div id="card-element" class="mt-2"></div>
                     <div id="card-errors" class="text-red-500 text-sm mt-2">{{ error }}</div>
                 </div>
@@ -43,10 +57,18 @@
                         Cancel
                     </SecondaryButton>
                     <PrimaryButton
+                        v-if="booking.amount_paid == 0 && paymentType"
                         @click="handleSubmit"
                         :disabled="processing"
                     >
-                        Pay {{ parseFloat(booking?.deposit_amount) > 0 ? 'Balance' : 'Deposit' }} £{{ formatPrice(parseFloat(booking?.deposit_amount) > 0 ? booking?.balance_amount : (booking?.service_price * 0.25)) }}
+                        Pay {{ paymentType === 'deposit' ? 'Deposit' : 'Full Amount' }} £{{ paymentType === 'deposit' ? depositAmount : formatPrice(booking?.service_price) }}
+                    </PrimaryButton>
+                    <PrimaryButton
+                        v-else-if="booking.deposit_paid && balanceDue > 0"
+                        @click="handleSubmitBalance"
+                        :disabled="processing"
+                    >
+                        Pay Balance £{{ formatPrice(balanceDue) }}
                     </PrimaryButton>
                 </div>
             </template>
@@ -73,7 +95,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
@@ -95,39 +117,45 @@ const processing = ref(false);
 const error = ref('');
 const initialized = ref(false);
 const paymentSuccess = ref(false);
+const paymentType = ref('');
+
+const depositAmount = computed(() => {
+    return (props.booking?.service_price * 0.10).toFixed(2);
+});
+const balanceDue = computed(() => {
+    return (props.booking?.service_price - (props.booking?.amount_paid || 0)).toFixed(2);
+});
 
 watch(
-    () => props.show,
-    async (show) => {
-        if (show && !initialized.value) {
-            try {
+    [() => props.show, paymentType],
+    async ([show, type]) => {
+        // Only mount card element if modal is open and card input is visible
+        if (
+            show &&
+            ((props.booking.amount_paid == 0 && type) || (props.booking.deposit_paid && balanceDue.value > 0))
+        ) {
+            await nextTick();
+            if (!stripe.value) {
                 const stripeKey = usePage().props.stripe_key;
                 if (!stripeKey) {
                     error.value = 'Stripe key is missing';
                     return;
                 }
-
                 stripe.value = await loadStripe(stripeKey);
-                const elements = stripe.value.elements();
-
-                await nextTick();
-
-                card.value = elements.create('card');
-                card.value.mount('#card-element');
-
-                card.value.on('change', (event) => {
-                    if (event.error) {
-                        error.value = event.error.message;
-                    } else {
-                        error.value = '';
-                    }
-                });
-
-                initialized.value = true;
-            } catch (e) {
-                console.error('Stripe initialization error:', e);
-                error.value = 'Failed to initialize payment form';
             }
+            if (card.value) {
+                card.value.unmount();
+            }
+            const elements = stripe.value.elements();
+            card.value = elements.create('card');
+            card.value.mount('#card-element');
+            card.value.on('change', (event) => {
+                error.value = event.error ? event.error.message : '';
+            });
+            initialized.value = true;
+        } else if (!show && card.value) {
+            card.value.unmount();
+            initialized.value = false;
         }
     }
 );
@@ -163,19 +191,13 @@ const formatPrice = (value) => {
     return number.toFixed(2);
 };
 
-const createPaymentIntent = async () => {
+const createPaymentIntent = async (type, amount) => {
     try {
-        const isDeposit = parseFloat(props.booking?.deposit_amount || 0) <= 0;
-        const paymentAmount = isDeposit
-            ? props.booking?.service_price * 0.25
-            : parseFloat(props.booking?.balance_amount || 0);
-        console.log('Stripe paymentAmount:', paymentAmount, typeof paymentAmount);
         const response = await axios.post(route('payment.create-intent', props.booking.id), {
             booking_id: props.booking.id,
-            payment_type: isDeposit ? 'deposit' : 'balance',
-            amount: paymentAmount
+            payment_type: type,
+            amount: amount
         });
-
         return response.data;
     } catch (error) {
         console.error('Error creating payment intent:', error);
@@ -185,36 +207,64 @@ const createPaymentIntent = async () => {
 
 const handleSubmit = async () => {
     if (processing.value) return;
-
     processing.value = true;
     error.value = '';
-
     try {
-        const { clientSecret, amount } = await createPaymentIntent();
-
+        const type = paymentType.value;
+        const amount = type === 'deposit' ? parseFloat(depositAmount.value) : parseFloat(props.booking?.service_price);
+        const { clientSecret } = await createPaymentIntent(type, amount);
         const result = await stripe.value.confirmCardPayment(clientSecret, {
             payment_method: {
                 card: card.value,
             }
         });
-
         if (result.error) {
             error.value = result.error.message;
             return;
         }
-
         if (result.paymentIntent.status === 'succeeded') {
             await axios.post(route('payment.process', props.booking.id), {
                 booking_id: props.booking.id,
                 payment_intent_id: result.paymentIntent.id,
                 amount: amount,
-                payment_type: props.booking.deposit_amount > 0 ? 'balance' : 'deposit'
+                payment_type: type
             });
-
             toast.success('Payment successful!');
             paymentSuccess.value = true;
-            // emit('payment-success');
-            // emit('close');
+        }
+    } catch (e) {
+        console.error('Payment error:', e);
+        error.value = 'Payment failed. Please try again.';
+    } finally {
+        processing.value = false;
+    }
+};
+
+const handleSubmitBalance = async () => {
+    if (processing.value) return;
+    processing.value = true;
+    error.value = '';
+    try {
+        const amount = parseFloat(balanceDue.value);
+        const { clientSecret } = await createPaymentIntent('full', amount);
+        const result = await stripe.value.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: card.value,
+            }
+        });
+        if (result.error) {
+            error.value = result.error.message;
+            return;
+        }
+        if (result.paymentIntent.status === 'succeeded') {
+            await axios.post(route('payment.process', props.booking.id), {
+                booking_id: props.booking.id,
+                payment_intent_id: result.paymentIntent.id,
+                amount: amount,
+                payment_type: 'full'
+            });
+            toast.success('Payment successful!');
+            paymentSuccess.value = true;
         }
     } catch (e) {
         console.error('Payment error:', e);

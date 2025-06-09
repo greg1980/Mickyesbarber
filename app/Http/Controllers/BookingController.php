@@ -11,6 +11,8 @@ use App\Mail\BookingCreated;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RescheduleConfirmation;
 use App\Mail\CancellationConfirmation;
+use App\Models\Notification;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
@@ -218,5 +220,44 @@ class BookingController extends Controller
         $availableSlots = array_values(array_diff($allSlots, $bookedSlots));
 
         return response()->json(['available_slots' => $availableSlots]);
+    }
+
+    /**
+     * Handle customer check-in for an appointment.
+     */
+    public function checkIn(Booking $booking)
+    {
+        // Verify the booking belongs to the authenticated user
+        if ($booking->user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        // Update booking status
+        $booking->update([
+            'status' => 'checked_in',
+            'checked_in_at' => now(),
+        ]);
+
+        // Create notification for the barber
+        Notification::create([
+            'user_id' => $booking->barber->user_id,
+            'type' => 'check_in',
+            'title' => 'Customer Checked In',
+            'message' => sprintf(
+                '%s has checked in for their appointment at %s',
+                $booking->user->name,
+                Carbon::parse($booking->booking_time)->format('g:i A')
+            ),
+            'data' => [
+                'booking_id' => $booking->id,
+                'customer_name' => $booking->user->name,
+                'booking_time' => $booking->booking_time,
+            ],
+        ]);
+
+        return response()->json([
+            'message' => 'Successfully checked in',
+            'booking' => $booking->fresh(['user', 'service'])
+        ]);
     }
 }

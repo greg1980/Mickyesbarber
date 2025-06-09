@@ -20,6 +20,8 @@ class Barber extends Model
         'bio',
         'is_approved',
         'availability',
+        'years_of_experience',
+        'mobile_contact',
     ];
 
     /**

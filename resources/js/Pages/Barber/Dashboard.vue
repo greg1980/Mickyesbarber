@@ -348,49 +348,122 @@ onMounted(() => {
                     </div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <!-- Availability Card -->
-                  <div class="bg-white shadow-lg p-0 flex flex-col items-center">
-                    <div class="w-full bg-yellow-400 flex flex-col items-center pt-6 pb-4">
-                      <img :src="$page.props.auth.user.profile_photo_url" class="w-16 h-16 rounded-full object-cover mb-2 border-4 border-white shadow" alt="Profile" />
-                      <div class="font-semibold text-lg mb-1">{{$page.props.auth.user.name}}</div>
-                      <div class="text-xs text-gray-700 mb-2">Barber</div>
-                    </div>
-                    <div class="w-full p-6">
-                      <div class="flex justify-between items-center mb-2">
-                        <span class="font-semibold">Availability</span>
-                        <button @click="showModal = true" class="px-3 py-1 text-xs font-medium border border-green-600 text-green-600 bg-white rounded hover:bg-green-600 hover:text-white transition-colors duration-200">Edit</button>
+                  <!-- Left Column: Stack two cards vertically -->
+                  <div class="flex flex-col gap-6">
+                    <!-- Availability Card -->
+                    <div class="bg-white shadow-lg p-0 flex flex-col items-center">
+                      <div class="w-full bg-yellow-400 flex flex-col items-center pt-5 pb-3">
+                        <img :src="$page.props.auth.user.profile_photo_url" class="w-16 h-16 rounded-full object-cover mb-2 border-4 border-white shadow" alt="Profile" />
+                        <div class="font-semibold text-lg mb-1">{{$page.props.auth.user.name}}</div>
+                        <div class="text-xs text-gray-700 mb-2">Barber</div>
                       </div>
-                      <ul class="text-sm text-gray-700">
-                        <li v-for="day in weekDays" :key="day" class="flex justify-between">
-                          <span :class="[
-                            ['monday','tuesday','wednesday','thursday','friday'].includes(day) ? 'text-blue-600' : '',
-                            ['saturday','sunday'].includes(day) ? 'text-pink-500' : '',
-                            'capitalize'
-                          ]">{{ day }}</span>
-                          <span v-if="availabilityMap[day] && availabilityMap[day].is_available">
-                            {{ availabilityMap[day].start_time }} - {{ availabilityMap[day].end_time }}
-                          </span>
-                          <span v-else class="text-gray-400">Unavailable</span>
-                        </li>
-                      </ul>
+                      <div class="w-full p-5">
+                        <div class="flex justify-between items-center mb-2">
+                          <span class="font-semibold">Availability</span>
+                          <button @click="showModal = true" class="px-3 py-1 text-xs font-medium border border-green-600 text-green-600 bg-white rounded hover:bg-green-600 hover:text-white transition-colors duration-200">Edit</button>
+                        </div>
+                        <ul class="text-sm text-gray-700">
+                          <li v-for="day in weekDays" :key="day" class="flex justify-between">
+                            <span :class="[
+                              ['monday','tuesday','wednesday','thursday','friday'].includes(day) ? 'text-blue-600' : '',
+                              ['saturday','sunday'].includes(day) ? 'text-pink-500' : '',
+                              'capitalize'
+                            ]">{{ day }}</span>
+                            <span v-if="availabilityMap[day] && availabilityMap[day].is_available">
+                              {{ availabilityMap[day].start_time }} - {{ availabilityMap[day].end_time }}
+                            </span>
+                            <span v-else class="text-gray-400">Unavailable</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <div v-if="successMessage" class="text-green-600 text-xs mt-2">{{ successMessage }}</div>
                     </div>
-                    <div v-if="successMessage" class="text-green-600 text-xs mt-2">{{ successMessage }}</div>
+                    <!-- End Availability Card -->
+                    <!-- Second Generic Card -->
+                    <div class="bg-white shadow-lg p-0 flex flex-col items-center">
+                      <div class="w-full bg-blue-400 flex flex-col items-center pt-5 pb-3">
+                        <div class="font-semibold text-lg mb-1 text-white">Second Card</div>
+                        <div class="text-xs text-blue-100 mb-2">Generic Content</div>
+                      </div>
+                      <div class="w-full p-5">
+                        <p class="text-gray-700 text-center">This is a placeholder for your second card. Replace this with your desired content.</p>
+                      </div>
+                    </div>
+                    <!-- End Second Generic Card -->
                   </div>
-                  <!-- End Availability Card -->
+                  <!-- Right Column: Upcoming Appointments -->
                   <div class="lg:col-span-2">
                     <div class="space-y-4 bg-white shadow-lg p-6">
                         <h2 class="text-lg font-semibold">Upcoming Appointments</h2>
-                        <div v-if="bookings.length" class="grid gap-4">
-                            <div v-for="booking in bookings" :key="booking.id" class="bg-gray-100 p-4">
-                                <p class="font-semibold">Service: {{ booking.service_name || booking.service?.name || 'N/A' }}</p>
-                                <p class="text-sm text-gray-500">
-                                    Client: {{ booking.user?.name || 'N/A' }}<br />
-                                    {{ booking.booking_time ? new Date(booking.booking_time).toLocaleString() : 'N/A' }}
-                                </p>
-                                <span class="text-xs uppercase px-2 py-1 rounded bg-gray-200">
-                                    {{ booking.status || 'N/A' }}
+                        <div v-if="bookings.length">
+                          <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                              <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <span class="inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    User
+                                  </span>
+                                </th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <span class="inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><circle cx="12" cy="16" r="2"/></svg>
+                                    Date & Time
+                                  </span>
+                                </th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <span class="inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>
+                                    Notes
+                                  </span>
+                                </th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  <span class="inline-flex items-center">
+                                    <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2l4-4"/></svg>
+                                    Payment Status
                                 </span>
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                              <tr v-for="booking in bookings" :key="booking.id">
+                                <td class="px-4 py-2 flex items-center">
+                                  <img :src="booking.user.profile_photo_url" alt="User Image" class="w-8 h-8 rounded-full object-cover mr-2 border" />
+                                  <span class="font-medium">{{ booking.user.name }}</span>
+                                </td>
+                                <td class="px-4 py-2">
+                                  <div v-if="booking.booking_time">
+                                    <div>
+                                      {{
+                                        new Date(
+                                          booking.booking_time.replace(' ', 'T')
+                                        ).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                                      }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                      {{
+                                        new Date(
+                                          booking.booking_time.replace(' ', 'T')
+                                        ).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true })
+                                      }}
+                                    </div>
                             </div>
+                                  <span v-else>N/A</span>
+                                </td>
+                                <td class="px-4 py-2">
+                                  <span>{{ booking.notes || '—' }}</span>
+                                </td>
+                                <td class="px-4 py-2">
+                                  <span :class="[
+                                    'text-xs px-2 py-1 rounded',
+                                    booking.payment_status === 'fully_paid' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'
+                                  ]">
+                                    {{ booking.payment_status ? booking.payment_status.replace('_', ' ') : 'N/A' }}
+                                  </span>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
                         </div>
                         <p v-else>No appointments yet.</p>
                     </div>

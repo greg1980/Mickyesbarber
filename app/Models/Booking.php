@@ -16,8 +16,8 @@ class Booking extends Model
         'booking_time',
         'service_price',
         'status',
-        'deposit_amount',
-        'balance_amount',
+        'amount_paid',
+        'deposit_paid',
         'payment_status',
         'stripe_payment_id'
     ];
@@ -26,8 +26,8 @@ class Booking extends Model
         'booking_date' => 'date',
         'booking_time' => 'datetime',
         'service_price' => 'decimal:2',
-        'deposit_amount' => 'decimal:2',
-        'balance_amount' => 'decimal:2'
+        'amount_paid' => 'decimal:2',
+        'deposit_paid' => 'boolean',
     ];
 
     public function user()
@@ -52,12 +52,13 @@ class Booking extends Model
 
     public function calculateBalanceAmount()
     {
-        return $this->service_price - $this->deposit_amount;
+        return $this->service_price - $this->amount_paid;
     }
 
     public function updateBalanceAmount()
     {
-        $this->balance_amount = $this->calculateBalanceAmount();
-        $this->save();
+        // No longer needed, but kept for compatibility
+        // $this->balance_amount = $this->calculateBalanceAmount();
+        // $this->save();
     }
 }
