@@ -270,7 +270,7 @@
 
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Navigation from '@/Components/Navigation.vue'
 import Footer from '@/Components/Footer.vue'
 import {
@@ -280,25 +280,18 @@ import {
   SparklesIcon,
   HomeIcon
 } from '@heroicons/vue/24/outline'
+import axios from 'axios'
 
-// Sample data for the carousel
-const slides = ref([
-  {
-    before: '/images/services/pexels-photo-7697217.webp',
-    after: '/images/services/pexels-photo-7697282.jpeg',
-    description: 'Classic Gentleman\'s Cut Transformation'
-  },
-  {
-    before: '/images/services/pexels-photo-7697394.webp',
-    after: '/images/services/pexels-photo-7697477.webp',
-    description: 'Modern Fade Style Makeover'
-  },
-  {
-    before: '/images/services/pexels-photo-7697676.webp',
-    after: '/images/services/pexels-photo-8867162.jpeg',
-    description: 'Beard Grooming & Styling'
-  }
-])
+const slides = ref([])
+
+onMounted(async () => {
+  const res = await axios.get('/admin/transformations/approved')
+  slides.value = res.data.map(t => ({
+    before: t.before,
+    after: t.after,
+    description: t.style || 'Transformation',
+  }))
+})
 
 const currentSlide = ref(0)
 
