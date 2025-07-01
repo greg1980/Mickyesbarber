@@ -146,13 +146,13 @@ watch(
             if (card.value) {
                 card.value.unmount();
             }
-            const elements = stripe.value.elements();
-            card.value = elements.create('card');
-            card.value.mount('#card-element');
-            card.value.on('change', (event) => {
+                const elements = stripe.value.elements();
+                card.value = elements.create('card');
+                card.value.mount('#card-element');
+                card.value.on('change', (event) => {
                 error.value = event.error ? event.error.message : '';
-            });
-            initialized.value = true;
+                });
+                initialized.value = true;
         } else if (!show && card.value) {
             card.value.unmount();
             initialized.value = false;

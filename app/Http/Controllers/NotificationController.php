@@ -114,6 +114,36 @@ class NotificationController extends Controller
     }
 
     /**
+     * Delete a notification.
+     */
+    public function destroy(Request $request, Notification $notification)
+    {
+        if ($notification->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $notification->delete();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Delete all read notifications.
+     */
+    public function deleteAllRead(Request $request)
+    {
+        $user = Auth::user();
+        $deletedCount = Notification::where('user_id', $user->id)
+            ->where('is_read', true)
+            ->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted_count' => $deletedCount
+        ]);
+    }
+
+    /**
      * Create a notification for an upcoming appointment.
      */
     private function createAppointmentNotification($user, $appointment)

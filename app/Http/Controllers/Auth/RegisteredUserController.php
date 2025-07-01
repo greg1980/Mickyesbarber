@@ -42,6 +42,18 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Notify admin(s) of new user registration
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'system',
+                'title' => 'New User Registration',
+                'message' => $user->name . ' has registered as a ' . ($user->role ?? 'user') . '.',
+                'data' => ['user_id' => $user->id],
+            ]);
+        }
+
         event(new Registered($user));
 
         Auth::login($user);

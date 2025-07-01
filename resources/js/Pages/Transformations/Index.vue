@@ -1,8 +1,25 @@
 <template>
   <SidebarLayout>
-    <div class="min-h-screen bg-gray-50">
+    <div class="p-6 bg-gray-50 min-h-screen">
+      <div class="bg-white shadow rounded px-6 py-4 mb-6">
+        <h1 class="text-xl font-bold flex items-center gap-2 text-gray-600">
+          <div class="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-purple-600">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+            </svg>
+          </div>
+          My Transformations
+        </h1>
+      </div>
       <div class="max-w-3xl mx-auto py-12">
-        <h1 class="text-3xl font-bold mb-4">My Transformations</h1>
+        <h1 class="text-xl font-bold mb-6 flex items-center gap-2 text-gray-600">
+          <div class="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-purple-600">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+            </svg>
+          </div>
+          My Transformations
+        </h1>
 
         <div v-if="Object.keys(form.errors).length" class="mb-4 p-3 bg-red-100 text-red-800 rounded border border-red-300">
           <div v-for="(error, key) in form.errors" :key="key">{{ error }}</div>
@@ -20,11 +37,49 @@
             <div v-else-if="props.alreadySubmitted" class="mb-4 p-3 bg-blue-100 text-blue-800 rounded border border-blue-300">
               You have already submitted a transformation for your latest completed booking.
             </div>
-            <h2 class="text-lg font-bold mb-4">Submit Transformation</h2>
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-gray-600">
+              <div class="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-green-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </div>
+              Submit Transformation
+            </h2>
             <input type="hidden" v-model="form.booking_id" />
             <div class="mb-4">
               <label class="block text-sm font-medium mb-1">Barber</label>
-              <select v-model="form.barber_id" required class="block w-full border rounded px-2 py-1">
+
+              <!-- Mobile Custom Dropdown -->
+              <div class="block md:hidden">
+                <div class="relative" ref="barberDropdownRef">
+                  <button
+                    type="button"
+                    @click="toggleBarberDropdown"
+                    class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-left shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
+                  >
+                    <span v-if="!form.barber_id" class="text-gray-500">Select a barber</span>
+                    <span v-else class="text-gray-900">{{ getSelectedBarberName() }}</span>
+                    <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+
+                  <div v-if="showBarberDropdown" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-auto">
+                    <button
+                      type="button"
+                      v-for="barber in barbers"
+                      :key="barber.id"
+                      @click="selectBarber(barber)"
+                      class="w-full text-left px-3 py-1.5 text-sm font-normal text-gray-900 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    >
+                      {{ barber.user ? barber.user.name : 'Barber #' + barber.id }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Desktop Standard Dropdown -->
+              <select v-model="form.barber_id" required class="hidden md:block w-full border rounded px-2 py-1">
                 <option value="" disabled>Select a barber</option>
                 <option v-for="barber in barbers" :key="barber.id" :value="barber.id">
                   {{ barber.user ? barber.user.name : 'Barber #' + barber.id }}
@@ -77,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import SidebarLayout from '@/Layouts/SidebarLayout.vue'
 
@@ -95,6 +150,9 @@ const props = defineProps({
 
 const showSuccess = ref(false)
 const submitting = ref(false)
+const showBarberDropdown = ref(false)
+const barberDropdownRef = ref(null)
+
 const form = useForm({
   before_photo: null,
   after_photo: null,
@@ -135,6 +193,38 @@ const submitForm = () => {
     },
   })
 }
+
+// Mobile dropdown functions
+const getSelectedBarberName = () => {
+  const barber = props.barbers.find(b => b.id === form.barber_id)
+  return barber ? (barber.user ? barber.user.name : 'Barber #' + barber.id) : ''
+}
+
+const selectBarber = (barber) => {
+  form.barber_id = barber.id
+  showBarberDropdown.value = false
+}
+
+const toggleBarberDropdown = () => {
+  showBarberDropdown.value = !showBarberDropdown.value
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (barberDropdownRef.value && !barberDropdownRef.value.contains(event.target)) {
+    showBarberDropdown.value = false
+  }
+}
+
+// Add click outside listener
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+// Clean up listener
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <script>

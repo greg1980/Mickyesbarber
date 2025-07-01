@@ -44,6 +44,18 @@ class BarberRegisterController extends Controller
             'is_approved' => false,
         ]);
 
+        // Notify admin(s) of new barber application
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'system',
+                'title' => 'New Barber Application',
+                'message' => $user->name . ' has applied to become a barber.',
+                'data' => ['user_id' => $user->id],
+            ]);
+        }
+
         return redirect()->route('login')
             ->with('success', 'Your barber account has been created and is pending approval. We will notify you once approved.');
     }

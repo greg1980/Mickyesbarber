@@ -114,4 +114,25 @@ class TransformationController extends Controller
         $transformation->delete();
         return back()->with('success', 'Transformation deleted.');
     }
+
+    // Public method to get approved transformations for homepage
+    public function getApprovedTransformations()
+    {
+        $transformations = Transformation::where('is_approved', true)
+            ->with(['user', 'barber'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($transformation) {
+                return [
+                    'id' => $transformation->id,
+                    'before' => $transformation->before_photo ? Storage::url($transformation->before_photo) : null,
+                    'after' => $transformation->after_photo ? Storage::url($transformation->after_photo) : null,
+                    'style' => $transformation->style,
+                    'created_at' => $transformation->created_at,
+                ];
+            });
+
+        return response()->json($transformations);
+    }
 }

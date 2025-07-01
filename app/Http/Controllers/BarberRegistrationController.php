@@ -39,6 +39,11 @@ class BarberRegistrationController extends Controller
 
         $errors = $validator->errors();
 
+        // Prevent reapplication if declined
+        if (Barber::where('user_id', Auth::id())->where('is_approved', 0)->exists()) {
+            $errors->add('mobile_contact', 'Your previous barber application was declined. You cannot reapply.');
+        }
+
         if (Barber::where('user_id', Auth::id())->exists()) {
             // Get any existing errors for mobile_contact
             $existing = $errors->get('mobile_contact');
@@ -61,7 +66,7 @@ class BarberRegistrationController extends Controller
             'bio' => $validated['bio'],
             'years_of_experience' => $validated['years_of_experience'],
             'mobile_contact' => $validated['mobile_contact'],
-            'is_approved' => 0,
+            'is_approved' => null,
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Your application has been submitted and is pending admin approval.');

@@ -13,6 +13,7 @@ use App\Mail\RescheduleConfirmation;
 use App\Mail\CancellationConfirmation;
 use App\Models\Notification;
 use Carbon\Carbon;
+use App\Models\User;
 
 class BookingController extends Controller
 {
@@ -60,6 +61,8 @@ class BookingController extends Controller
             'booking_time' => 'required|date_format:H:i',
             'barber_id' => 'required|exists:barbers,id',
             'notes' => 'nullable|string|max:500',
+            'user_id' => 'nullable|exists:users,id',
+            'skip_payment' => 'nullable|boolean',
         ]);
 
         // Double-booking prevention
@@ -75,34 +78,39 @@ class BookingController extends Controller
             ], 409);
         }
 
-        // Determine price based on service
-        $servicePrices = [
-            'classic-cut' => 30,
-            'kids-cut' => 25,
-            'hair-color' => 45,
-            'beard-grooming' => 20,
-            'mobile-service' => 50,
-            'special-treatment' => 35,
-        ];
-        $service = $validated['service'];
-        $service_price = $servicePrices[$service] ?? 0;
-        $deposit_amount = round($service_price * 0.25, 2);
+        // Get service from database
+        $service = \App\Models\Service::where('slug', $validated['service'])
+                                     ->where('is_active', true)
+                                     ->first();
+
+        if (!$service) {
+            return response()->json([
+                'error' => 'Selected service is not available.'
+            ], 422);
+        }
+
+        $service_price = $service->price;
+        $deposit_amount = $validated['skip_payment'] ? 0 : round($service_price * 0.25, 2);
         $balance_amount = $service_price - $deposit_amount;
 
+        // Determine the user_id based on the request
+        $user_id = $validated['user_id'] ?? $request->user()->id;
+
         $booking = Booking::create([
-            'user_id' => $request->user()->id,
+            'user_id' => $user_id,
             'barber_id' => $validated['barber_id'],
+            'service_id' => $service->id,
             'booking_date' => $validated['booking_date'],
             'booking_time' => $validated['booking_time'],
             'service_price' => $service_price,
             'deposit_amount' => $deposit_amount,
             'balance_amount' => $balance_amount,
-            'status' => 'pending',
+            'status' => $validated['skip_payment'] ? 'confirmed' : 'pending',
             'notes' => $validated['notes'] ?? null,
         ]);
 
         // Load related barber and user for frontend display
-        $booking = Booking::with('barber.user')->find($booking->id);
+        $booking = Booking::with('barber.user', 'user')->find($booking->id);
 
         // Send booking confirmation email
         if ($booking->user && $booking->user->email) {
@@ -112,6 +120,7 @@ class BookingController extends Controller
         return response()->json([
             'message' => 'Booking created successfully',
             'booking' => $booking,
+            'skip_payment' => $validated['skip_payment'] ?? false,
         ]);
     }
 
@@ -259,5 +268,24 @@ class BookingController extends Controller
             'message' => 'Successfully checked in',
             'booking' => $booking->fresh(['user', 'service'])
         ]);
+    }
+
+    /**
+     * Get all users for admin/barber booking selection
+     */
+    public function getUsers()
+    {
+        $user = auth()->user();
+
+        if (!in_array($user->role, ['admin', 'barber'])) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $users = User::where('role', 'customer')
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->get();
+
+        return response()->json(['users' => $users]);
     }
 }

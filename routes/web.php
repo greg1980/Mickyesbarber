@@ -17,17 +17,57 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Customer\CustomerStatsController;
 use App\Http\Controllers\BarberRegistrationController;
 
+// CSRF refresh route
+Route::get('/refresh-csrf', function () {
+    return response()->json([
+        'csrf_token' => csrf_token()
+    ]);
+})->middleware(['web']);
+
 // Public routes
 Route::get('/', function () {
     return Inertia::render('HomePage');
 })->name('home');
 
 Route::get('/services', function () {
-    return Inertia::render('ServicePage');
+    $services = \App\Models\Service::where('is_active', true)
+                                   ->orderBy('sort_order')
+                                   ->get();
+
+    return Inertia::render('ServicePage', [
+        'services' => $services
+    ]);
 })->name('services');
 
 Route::get('/about', function () {
-    return Inertia::render('AboutPage');
+    // Get approved barbers with their ratings
+    $barbers = \App\Models\Barber::where('is_approved', true)
+        ->with(['user', 'ratings'])
+        ->get()
+        ->map(function ($barber) {
+            $ratings = $barber->ratings->pluck('rating')->filter();
+            $avgRating = $ratings->count() > 0 ? round($ratings->avg(), 1) : 0;
+            $totalReviews = $ratings->count();
+
+            return [
+                'id' => $barber->id,
+                'name' => $barber->user->name ?? 'Unknown',
+                'bio' => $barber->bio ?? 'Professional barber dedicated to providing excellent service.',
+                'years_of_experience' => $barber->years_of_experience ?? 5,
+                'photo_url' => $barber->user->profile_photo_url ?? '/images/default-avatar.png',
+                'avg_rating' => $avgRating,
+                'total_reviews' => $totalReviews,
+                'title' => $barber->years_of_experience >= 10 ? 'Master Barber' :
+                          ($barber->years_of_experience >= 5 ? 'Senior Barber' : 'Professional Barber'),
+            ];
+        })
+        ->sortByDesc('avg_rating')
+        ->take(6) // Limit to top 6 barbers
+        ->values();
+
+    return Inertia::render('AboutPage', [
+        'barbers' => $barbers
+    ]);
 })->name('about');
 
 Route::get('/contact', function () {
@@ -56,15 +96,60 @@ Route::middleware(['auth'])->group(function () {
 
     // Admin routes
     Route::middleware(['role:admin'])->group(function () {
-        Route::get('/admin/dashboard', function () {
-            return Inertia::render('Admin/Dashboard');
-        })->name('admin.dashboard');
+        Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/admin/slots/today', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'todaySlots'])->name('admin.slots.today');
+        Route::get('/admin/barbers/pending', [\App\Http\Controllers\Admin\BarberApprovalController::class, 'pending'])->name('admin.barbers.pending');
+        Route::get('/admin/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('admin.users.index');
+        Route::get('/admin/transformations', function () {
+            return Inertia::render('Admin/Transformations');
+        })->name('admin.transformations');
+        Route::get('/admin/finances', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'index'])->name('admin.finances');
+        Route::get('/admin/finances/monthly-revenue', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'getMonthlyRevenueData']);
+        Route::get('/admin/finances/daily-revenue', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'getDailyRevenueData']);
+        Route::get('/admin/finances/stats', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'getRevenueStats']);
+        Route::get('/admin/bookings', function () {
+            return Inertia::render('Admin/Bookings');
+        })->name('admin.bookings');
+        Route::get('/admin/users/{user}/completed-bookings-count', [\App\Http\Controllers\Admin\AdminUserController::class, 'completedBookingsCount']);
+        Route::get('/admin/users/{user}/stats', [\App\Http\Controllers\Admin\AdminUserController::class, 'userStats']);
+        Route::delete('/admin/users/{user}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy']);
+        Route::post('/admin/users/{user}/restore', [\App\Http\Controllers\Admin\AdminUserController::class, 'restore']);
+        Route::get('/admin/users/growth', [\App\Http\Controllers\Admin\AdminUserController::class, 'userGrowth']);
+        Route::get('/admin/transformations/pending', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'pendingTransformations']);
+        Route::get('/admin/transformations/approved', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'approvedTransformations']);
+        Route::get('/admin/barbers/{barber}/schedule', [\App\Http\Controllers\Admin\AdminUserController::class, 'barberSchedule']);
+        Route::get('/admin/barbers', [\App\Http\Controllers\Admin\AdminUserController::class, 'allBarbers']);
+        Route::get('/admin/barbers-manage', [\App\Http\Controllers\Admin\AdminUserController::class, 'allBarbersForManagement']);
+        Route::get('/admin/barbers/{barber}/booking-stats', [\App\Http\Controllers\Admin\AdminUserController::class, 'barberBookingStats']);
+        Route::get('/admin/barbers/{barber}/bookings', [\App\Http\Controllers\Admin\AdminUserController::class, 'barberBookings']);
+        Route::post('/admin/barbers/{barber}/revoke-approval', [\App\Http\Controllers\Admin\AdminUserController::class, 'revokeApproval']);
+
+        // Service Management Routes
+        Route::get('/admin/services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'index'])->name('admin.services.index');
+        Route::post('/admin/services', [\App\Http\Controllers\Admin\AdminServiceController::class, 'store']);
+        Route::get('/admin/services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'show']);
+        Route::put('/admin/services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'update']);
+        Route::delete('/admin/services/{service}', [\App\Http\Controllers\Admin\AdminServiceController::class, 'destroy']);
+        Route::post('/admin/services/{service}/toggle', [\App\Http\Controllers\Admin\AdminServiceController::class, 'toggle']);
+        Route::post('/admin/services/update-order', [\App\Http\Controllers\Admin\AdminServiceController::class, 'updateOrder']);
+        Route::get('/admin/services-api/active', [\App\Http\Controllers\Admin\AdminServiceController::class, 'getActiveServices']);
 
         // Barber approval routes
         Route::get('/admin/barber-approvals', [BarberApprovalController::class, 'index'])
             ->name('admin.barber.approvals');
         Route::post('/admin/barber-approvals/{barber}/approve', [BarberApprovalController::class, 'approve'])
             ->name('admin.barber.approve');
+        Route::post('/admin/barber-approvals/{barber}/decline', [BarberApprovalController::class, 'decline'])
+            ->name('admin.barber.decline');
+
+        // Barber manage routes
+        Route::get('/admin/barbers/manage', function () {
+            return Inertia::render('Admin/ManageBarbers');
+        })->name('admin.barbers.manage');
+
+        // Transformation routes
+        Route::post('/admin/transformations/{id}/approve', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'approveTransformation']);
+        Route::post('/admin/transformations/{id}/reject', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'rejectTransformation']);
     });
 
     // Barber routes
@@ -81,6 +166,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/barber/todays-appointments-count', [BarberStatsController::class, 'todaysAppointmentsCount']);
         Route::get('/barber/todays-completed-appointments-count', [BarberStatsController::class, 'todaysCompletedAppointmentsCount']);
         Route::get('/barber/monthly-completed-appointments-count', [BarberStatsController::class, 'monthlyCompletedAppointmentsCount']);
+        Route::get('/bookings', [BarberDashboardController::class, 'bookings'])->name('bookings');
+        Route::get('/barber/bookings/export-pdf', [BarberDashboardController::class, 'exportBookingsPDF'])->name('barber.bookings.export-pdf');
     });
 
     // Customer routes
@@ -95,13 +182,55 @@ Route::middleware(['auth'])->group(function () {
         })->name('booking.index');
     });
 
-    // Booking routes
+    // These routes are moved to the authenticated section below
+
+    // Transformation routes
+    Route::get('/transformations', [TransformationController::class, 'index'])->name('transformations.index');
+    Route::post('/transformations', [TransformationController::class, 'store'])->name('transformations.store');
+    Route::delete('/transformations/{id}', [TransformationController::class, 'destroy'])->name('transformations.destroy');
+    Route::post('/transformations/{id}/approve', [TransformationController::class, 'approve'])->middleware('role:admin')->name('transformations.approve');
+
+    // --- AJAX/AUTHENTICATED ENDPOINTS ---
+    // Notification routes
+    Route::prefix('notifications')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+        Route::delete('/read/all', [NotificationController::class, 'deleteAllRead'])->name('notifications.deleteAllRead');
+        // Returns the next upcoming appointment for the logged-in user (barber or customer)
+        Route::get('/next-appointment', [NotificationController::class, 'nextAppointment'])->name('notifications.next');
+    });
+});
+
+// Profile routes
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Customer routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
+    Route::get('/customer/bookings', [CustomerDashboardController::class, 'bookings'])->name('customer.bookings');
+    Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
+
+    // Booking routes (accessible to all authenticated users)
     Route::get('/booking/create', function () {
-        return Inertia::render('Booking/Create');
+        $services = \App\Models\Service::where('is_active', true)
+                                      ->orderBy('sort_order')
+                                      ->get(['id', 'name', 'slug', 'price', 'description']);
+
+        return Inertia::render('Booking/Create', [
+            'user' => auth()->user(),
+            'services' => $services
+        ]);
     })->name('booking.create');
 
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 
+    // Booking management routes
     Route::get('/booking/{booking}', function () {
         return Inertia::render('Booking/Show');
     })->name('booking.show');
@@ -131,40 +260,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/bookings/{booking}/payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.create-intent');
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'processPayment'])->name('payment.process');
 
-    // Transformation routes
-    Route::get('/transformations', [TransformationController::class, 'index'])->name('transformations.index');
-    Route::post('/transformations', [TransformationController::class, 'store'])->name('transformations.store');
-    Route::delete('/transformations/{id}', [TransformationController::class, 'destroy'])->name('transformations.destroy');
-    Route::post('/transformations/{id}/approve', [TransformationController::class, 'approve'])->middleware('role:admin')->name('transformations.approve');
-
-    // --- AJAX/AUTHENTICATED ENDPOINTS ---
-    // Returns the next upcoming appointment for the logged-in user (barber or customer)
-    Route::get('/notifications', [NotificationController::class, 'nextAppointment'])->name('notifications.next');
-
-    // Notification routes
-    Route::prefix('notifications')->group(function () {
-        Route::get('/', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::post('/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
-        Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
-    });
-});
-
-// Profile routes
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-// Customer routes
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
-    Route::get('/customer/bookings', [CustomerDashboardController::class, 'bookings'])->name('customer.bookings');
-    Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
-
     // Add available barbers and slots endpoints for booking
     Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers'])->name('api.available-barbers');
     Route::get('/api/available-slots', [BookingController::class, 'getAvailableSlots'])->name('api.available-slots');
+    Route::get('/users/customers', [BookingController::class, 'getUsers'])->name('users.customers');
 
     // Barber routes
     Route::middleware(['auth', 'role:barber'])->prefix('barber')->name('barber.')->group(function () {
@@ -177,6 +276,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/todays-appointments-count', [BarberStatsController::class, 'todaysAppointmentsCount']);
         Route::get('/todays-completed-appointments-count', [BarberStatsController::class, 'todaysCompletedAppointmentsCount']);
         Route::get('/monthly-completed-appointments-count', [BarberStatsController::class, 'monthlyCompletedAppointmentsCount']);
+        Route::get('/bookings', [BarberDashboardController::class, 'bookings'])->name('bookings');
+        Route::get('/transformations', [\App\Http\Controllers\Barber\BarberDashboardController::class, 'transformations'])->name('transformations');
     });
 
     Route::get('/customer/stats/monthly-spending', [CustomerStatsController::class, 'monthlySpending'])->name('customer.stats.monthly-spending');
@@ -191,6 +292,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers']);
 // Route::get('/api/available-slots', [BookingController::class, 'getAvailableSlots']);
 // (Moved to routes/api.php)
+
+// Public API routes (no authentication required)
+Route::get('/api/transformations/approved', [\App\Http\Controllers\TransformationController::class, 'getApprovedTransformations'])->name('api.transformations.approved');
 
 Route::get('/test-profile', function () {
     return view('test-profile');

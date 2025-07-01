@@ -4,7 +4,7 @@
         <div class="sticky top-0 z-10 flex items-center justify-between h-16 px-4 bg-white shadow-sm">
             <div class="flex items-center space-x-8">
                 <Link :href="route('home')" class="text-xl font-bold text-gray-900">
-                    MickyesBarber
+                    Mickyes Coiffure
                 </Link>
                 <h2 class="text-lg font-semibold text-gray-800">
                     <slot name="header" />

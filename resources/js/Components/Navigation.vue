@@ -5,7 +5,7 @@
         <!-- Logo -->
         <div class="flex-shrink-0">
           <Link :href="route('home')" class="flex items-center hover:opacity-75 transition-opacity duration-150">
-            <span class="text-xl font-bold text-gray-900">MickyesBarber</span>
+            <span class="text-xl font-bold text-gray-900">Mickyes Coiffure</span>
           </Link>
         </div>
 

@@ -33,18 +33,34 @@
       <section class="py-12 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <!-- Classic Haircuts -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
+            <!-- Dynamic Service Cards -->
+            <div v-for="service in services" :key="service.id" class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
               <div class="p-6">
                 <div class="flex items-center mb-4">
-                  <ScissorsIcon class="h-8 w-8 text-green-600 mr-3" />
-                  <h3 class="text-xl font-bold text-gray-900">Classic Haircuts</h3>
+                  <div :class="getServiceIconStyle(service.slug)" class="w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                    <component :is="getServiceIcon(service.icon)" class="h-6 w-6 text-white" />
+                  </div>
+                  <h3 class="text-xl font-bold text-gray-900">{{ service.name }}</h3>
                 </div>
                 <p class="text-gray-600 mb-4">
-                  From fades to tapers, textured crops to classic gentleman's cuts. Our experienced barbers deliver precision cuts that enhance your natural style.
+                  {{ service.description }}
                 </p>
+                <div class="mb-4 space-y-2">
+                  <div class="flex items-center text-sm text-gray-500">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {{ getServiceDuration(service.slug) }}
+                  </div>
+                  <div class="flex items-center text-sm text-gray-500">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {{ getServiceIncludes(service.slug) }}
+                  </div>
+                </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-lg font-semibold text-gray-900">$30</span>
+                  <span class="text-lg font-semibold text-gray-900">£{{ formatPrice(service.price) }}</span>
                   <Link
                     :href="route('booking.create')"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
@@ -54,115 +70,53 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Kids Haircuts -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
-              <div class="p-6">
-                <div class="flex items-center mb-4">
-                  <UserGroupIcon class="h-8 w-8 text-green-600 mr-3" />
-                  <h3 class="text-xl font-bold text-gray-900">Kids Haircuts</h3>
+          <!-- Additional Value Section -->
+          <div class="mt-16 text-center">
+                          <h3 class="text-2xl font-bold text-gray-900 mb-8">Why Choose Mickyes Coiffure?</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div class="flex flex-col items-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-blue-200 transform transition-all duration-300 hover:scale-110 hover:shadow-xl">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
                 </div>
-                <p class="text-gray-600 mb-4">
-                  Specialized in making children feel comfortable and confident. We create fun, age-appropriate styles in a welcoming environment.
-                </p>
-                <div class="flex justify-between items-center">
-                  <span class="text-lg font-semibold text-gray-900">$25</span>
-                  <Link
-                    :href="route('booking.create')"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  >
-                    Book Now
-                  </Link>
+                <h4 class="text-lg font-semibold text-gray-900 mb-2">Expert Barbers</h4>
+                <p class="text-gray-600 text-center">Licensed professionals with years of experience</p>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-purple-200 transform transition-all duration-300 hover:scale-110 hover:shadow-xl">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
+                <h4 class="text-lg font-semibold text-gray-900 mb-2">Flexible Scheduling</h4>
+                <p class="text-gray-600 text-center">Same-day appointments and convenient booking</p>
+              </div>
+              <div class="flex flex-col items-center">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mb-4 shadow-lg shadow-emerald-200 transform transition-all duration-300 hover:scale-110 hover:shadow-xl">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h4 class="text-lg font-semibold text-gray-900 mb-2">Satisfaction Guaranteed</h4>
+                <p class="text-gray-600 text-center">We're not happy unless you're happy with your cut</p>
               </div>
             </div>
 
-            <!-- Hair Coloring -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
-              <div class="p-6">
-                <div class="flex items-center mb-4">
-                  <SwatchIcon class="h-8 w-8 text-green-600 mr-3" />
-                  <h3 class="text-xl font-bold text-gray-900">Hair Coloring</h3>
-                </div>
-                <p class="text-gray-600 mb-4">
-                  Express yourself with our professional coloring services. From subtle highlights to bold fashion colors, we help you achieve your desired look.
-                </p>
-                <div class="flex justify-between items-center">
-                  <span class="text-lg font-semibold text-gray-900">$45</span>
-                  <Link
-                    :href="route('booking.create')"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  >
-                    Book Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <!-- Beard Grooming -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
-              <div class="p-6">
-                <div class="flex items-center mb-4">
-                  <SparklesIcon class="h-8 w-8 text-green-600 mr-3" />
-                  <h3 class="text-xl font-bold text-gray-900">Beard Grooming</h3>
-                </div>
-                <p class="text-gray-600 mb-4">
-                  Complete beard care including trimming, shaping, and hot towel treatments. Keep your facial hair looking sharp and well-maintained.
-                </p>
-                <div class="flex justify-between items-center">
-                  <span class="text-lg font-semibold text-gray-900">$20</span>
-                  <Link
-                    :href="route('booking.create')"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  >
-                    Book Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mobile Service -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
-              <div class="p-6">
-                <div class="flex items-center mb-4">
-                  <HomeIcon class="h-8 w-8 text-green-600 mr-3" />
-                  <h3 class="text-xl font-bold text-gray-900">Mobile Service</h3>
-                </div>
-                <p class="text-gray-600 mb-4">
-                  Can't make it to the shop? Our professional barbers come to you. Enjoy the same high-quality service in the comfort of your home.
-                </p>
-                <div class="flex justify-between items-center">
-                  <span class="text-lg font-semibold text-gray-900">$50</span>
-                  <Link
-                    :href="route('booking.create')"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  >
-                    Book Now
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <!-- Special Treatments -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
-              <div class="p-6">
-                <div class="flex items-center mb-4">
-                  <SparklesIcon class="h-8 w-8 text-green-600 mr-3" />
-                  <h3 class="text-xl font-bold text-gray-900">Special Treatments</h3>
-                </div>
-                <p class="text-gray-600 mb-4">
-                  Pamper yourself with our premium treatments. From hot towel treatments to scalp massages, we offer services that go beyond the basics.
-                </p>
-                <div class="flex justify-between items-center">
-                  <span class="text-lg font-semibold text-gray-900">$35</span>
-                  <Link
-                    :href="route('booking.create')"
-                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                  >
-                    Book Now
-                  </Link>
-                </div>
-              </div>
+            <div class="mt-12 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-8">
+              <h4 class="text-xl font-bold text-gray-900 mb-4">Ready to Book Your Appointment?</h4>
+              <p class="text-gray-600 mb-6">Join hundreds of satisfied customers who trust Mickyes Coiffure for their grooming needs.</p>
+              <Link
+                :href="route('booking.create')"
+                class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
+                </svg>
+                Book Your Appointment Today
+              </Link>
             </div>
           </div>
         </div>
@@ -183,4 +137,67 @@ import {
   SparklesIcon,
   HomeIcon
 } from '@heroicons/vue/24/outline'
+
+const props = defineProps({
+  services: Array
+})
+
+// Icon mapping for dynamic icons
+const getServiceIcon = (iconName) => {
+  const iconMap = {
+    'ScissorsIcon': ScissorsIcon,
+    'UserGroupIcon': UserGroupIcon,
+    'SwatchIcon': SwatchIcon,
+    'SparklesIcon': SparklesIcon,
+    'HomeIcon': HomeIcon
+  }
+  return iconMap[iconName] || ScissorsIcon // Default to scissors if no match
+}
+
+// Duration mapping based on service slug
+const getServiceDuration = (slug) => {
+  const durationMap = {
+    'classic-cut': '45-60 minutes',
+    'kids-cut': '30-45 minutes',
+    'hair-color': '90-120 minutes',
+    'beard-grooming': '20-30 minutes',
+    'mobile-service': '60-90 minutes',
+    'special-treatment': '45-75 minutes'
+  }
+  return durationMap[slug] || '30-60 minutes'
+}
+
+// Service includes mapping based on service slug
+const getServiceIncludes = (slug) => {
+  const includesMap = {
+    'classic-cut': 'Includes wash & style',
+    'kids-cut': 'Ages 2-12 • Fun environment',
+    'hair-color': 'Consultation included',
+    'beard-grooming': 'Hot towel treatment included',
+    'mobile-service': '10-mile radius • Travel fee included',
+    'special-treatment': 'Premium treatments & massage'
+  }
+  return includesMap[slug] || 'Professional service'
+}
+
+// Format price to handle both integers and decimals
+const formatPrice = (price) => {
+  const num = parseFloat(price)
+  return num % 1 === 0 ? num.toString() : num.toFixed(2)
+}
+
+// Service icon color styling based on service slug
+const getServiceIconStyle = (slug) => {
+  const colorMap = {
+    'classic-cut': 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-200', // Professional blue
+    'kids-cut': 'bg-gradient-to-br from-orange-400 to-orange-500 shadow-orange-200', // Fun orange
+    'hair-color': 'bg-gradient-to-br from-purple-500 to-purple-600 shadow-purple-200', // Creative purple
+    'beard-grooming': 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-200', // Natural green
+    'mobile-service': 'bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-200', // Mobility indigo
+    'special-treatment': 'bg-gradient-to-br from-rose-500 to-rose-600 shadow-rose-200' // Luxury rose
+  }
+  const baseStyle = 'shadow-lg transform transition-all duration-300 hover:scale-110 hover:shadow-xl'
+  const serviceColor = colorMap[slug] || 'bg-gradient-to-br from-gray-500 to-gray-600 shadow-gray-200'
+  return `${serviceColor} ${baseStyle}`
+}
 </script>

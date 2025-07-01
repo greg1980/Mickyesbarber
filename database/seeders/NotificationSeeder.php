@@ -47,7 +47,7 @@ class NotificationSeeder extends Seeder
             ],
             [
                 'type' => 'system',
-                'title' => 'Welcome to MickyesBarber!',
+                'title' => 'Welcome to Mickyes Coiffure!',
                 'message' => 'Thank you for joining our platform. We\'re excited to have you!',
                 'data' => null,
                 'created_at' => Carbon::now()->subDays(1),

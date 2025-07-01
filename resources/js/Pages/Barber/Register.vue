@@ -1,7 +1,12 @@
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4">
     <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-      <h1 class="text-2xl font-bold mb-6 flex items-center gap-2">
+      <h1 class="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-600">
+        <div class="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
         <span>Register as a Barber</span>
       </h1>
       <form @submit.prevent="submit" class="space-y-5">

@@ -51,4 +51,9 @@ class Barber extends Model
     {
         return $this->hasMany(\App\Models\Booking::class, 'barber_id');
     }
+
+    public function ratings()
+    {
+        return $this->hasMany(\App\Models\Transformation::class, 'barber_id');
+    }
 }

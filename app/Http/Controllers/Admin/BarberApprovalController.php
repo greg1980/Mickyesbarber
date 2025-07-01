@@ -14,9 +14,15 @@ class BarberApprovalController extends Controller
      */
     public function index()
     {
-        $pendingBarbers = Barber::with('user')
+        $pendingBarbers = Barber::with(['user' => function($query) {
+            $query->whereNull('deleted_at');
+        }])
             ->where('is_approved', false)
-            ->get();
+            ->get()
+            ->filter(function($barber) {
+                return $barber->user !== null;
+            })
+            ->values();
 
         return Inertia::render('Admin/BarberApprovals', [
             'pendingBarbers' => $pendingBarbers
@@ -31,5 +37,14 @@ class BarberApprovalController extends Controller
         $barber->update(['is_approved' => true]);
 
         return back()->with('success', 'Barber has been approved successfully.');
+    }
+
+    /**
+     * Decline a barber.
+     */
+    public function decline(Barber $barber)
+    {
+        $barber->update(['is_approved' => 0]);
+        return back()->with('success', 'Barber has been declined.');
     }
 }

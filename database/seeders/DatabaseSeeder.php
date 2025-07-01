@@ -61,6 +61,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             NotificationSeeder::class,
+            ServiceSeeder::class,
+            BookingSeeder::class,
         ]);
     }
 }
