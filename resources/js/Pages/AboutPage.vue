@@ -1,5 +1,16 @@
 <template>
-  <Head title="About" />
+  <Head title="About">
+    <meta name="description" content="Learn about Mickyes Coiffure, our story, our team, and our commitment to professional barbering in Newcastle." />
+    <meta property="og:title" content="About Mickyes Coiffure - Our Story & Team" />
+    <meta property="og:description" content="Discover the story behind Mickyes Coiffure, Newcastle's trusted barbershop. Meet our experienced team and see why customers love us!" />
+    <meta property="og:image" content="/images/hero/pexels-photo-2881253.jpeg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mickyesbarbers.com/about" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="About Mickyes Coiffure - Our Story & Team" />
+    <meta name="twitter:description" content="Learn about our barbershop, our team, and our passion for great haircuts in Newcastle." />
+    <meta name="twitter:image" content="/images/hero/pexels-photo-2881253.jpeg" />
+  </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
     <main>

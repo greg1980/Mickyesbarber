@@ -1,9 +1,18 @@
 <template>
   <SidebarLayout>
     <div class="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      <!-- Success Message -->
+      <div v-if="$page.props.flash?.success" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative" role="alert">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span class="font-medium">{{ $page.props.flash.success }}</span>
+        </div>
+      </div>
       <!-- Modern Premium Header -->
       <div class="mb-8">
-        <div class="bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 rounded-2xl shadow-xl p-4 sm:p-8 text-white relative overflow-hidden">
           <!-- Background Pattern -->
           <div class="absolute inset-0 opacity-10">
             <svg class="w-full h-full" fill="currentColor" viewBox="0 0 100 100">
@@ -16,15 +25,15 @@
             </svg>
           </div>
 
-          <div class="relative z-10 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-              <div class="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                <UserGroupIcon class="w-8 h-8 text-white" />
+          <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 sm:space-x-4">
+              <div class="h-12 w-12 sm:h-16 sm:w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                <UserGroupIcon class="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               </div>
               <div>
-                <h1 class="text-4xl font-bold mb-2">Barber Management</h1>
-                <p class="text-gray-100 text-lg">Professional Team Administration</p>
-                <p class="text-gray-200 text-sm mt-1">Manage your barber team, schedules, and performance</p>
+                <h1 class="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 leading-tight">Barber Management</h1>
+                <p class="text-gray-100 text-base sm:text-lg">Professional Team Administration</p>
+                <p class="text-gray-200 text-xs sm:text-sm mt-1">Manage your barber team, schedules, and performance</p>
               </div>
             </div>
 
@@ -42,10 +51,10 @@
       </div>
 
       <!-- Modern Search and Filter Bar -->
-      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 gap-2">
           <!-- Search Bar -->
-          <div class="relative flex-1 max-w-md">
+          <div class="relative flex-1 max-w-md w-full">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -55,13 +64,13 @@
               v-model="searchQuery"
               type="text"
               placeholder="Search barbers by name or email..."
-              class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200"
+              class="block w-full pl-10 pr-3 py-2 sm:py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base"
             >
           </div>
 
           <!-- Filter and Actions -->
-          <div class="flex items-center space-x-3">
-            <select v-model="statusFilter" class="px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200">
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <select v-model="statusFilter" class="px-3 py-2 sm:px-4 sm:py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all duration-200 text-sm sm:text-base">
               <option value="">All Status</option>
               <option value="active">Active</option>
               <option value="pending">Pending</option>
@@ -69,98 +78,99 @@
               <option value="deleted">Deleted Users</option>
             </select>
 
-            <a :href="route('barber.register')" class="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md">
+            <button @click="showAddBarberModal = true" class="flex items-center justify-center space-x-2 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md w-full sm:w-auto text-sm sm:text-base">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
               <span>Add Barber</span>
-            </a>
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Premium Barber Cards Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <div v-for="barber in filteredBarbers" :key="barber.id"
              class="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300">
 
           <!-- Card Header with Profile -->
-          <div class="relative p-6 bg-gradient-to-br from-gray-50 to-white">
-            <div class="flex items-center space-x-4">
-                             <div class="relative">
-                 <img :src="barber.user?.profile_photo_url || 'https://ui-avatars.com/api/?name=' + (barber.user?.name || 'Barber')"
-                      class="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-lg" />
-                 <!-- Dynamic Status Indicator -->
-                 <div class="absolute -top-1 -right-1 h-5 w-5 border-2 border-white rounded-full"
-                      :class="{
-                        'bg-green-500': barber.is_approved === 1 || barber.is_approved === true,
-                        'bg-yellow-500': barber.is_approved === null,
-                        'bg-red-500': barber.is_approved === 0 || barber.is_approved === false
-                      }"></div>
-               </div>
-              <div class="flex-1">
-                <h3 class="text-xl font-bold transition-colors duration-200"
+          <div class="relative p-3 sm:p-4 md:p-6 bg-gradient-to-br from-gray-50 to-white">
+            <div class="flex flex-col xs:flex-row items-start xs:items-center space-y-2 xs:space-y-0 xs:space-x-3 sm:space-x-4 w-full">
+              <div class="relative flex-shrink-0">
+                <img :src="barber.user?.profile_photo_url || 'https://ui-avatars.com/api/?name=' + (barber.user?.name || 'Barber')"
+                     :alt="barber.user?.name ? 'Profile photo of ' + barber.user.name : 'Barber profile photo'"
+                     class="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border mr-2 sm:mr-3" />
+                <!-- Dynamic Status Indicator -->
+                <div class="absolute -top-1 -right-1 h-5 w-5 border-2 border-white rounded-full"
+                     :class="{
+                       'bg-green-500': barber.is_approved === 1 || barber.is_approved === true,
+                       'bg-yellow-500': barber.is_approved === null,
+                       'bg-red-500': barber.is_approved === 0 || barber.is_approved === false
+                     }"></div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base sm:text-lg md:text-xl font-bold transition-colors duration-200 truncate"
                     :class="barber.user?.deleted_at ? 'text-red-600 line-through' : 'text-gray-900 group-hover:text-gray-700'">
                   {{ barber.user?.name || 'N/A' }}
                   <span v-if="barber.user?.deleted_at" class="text-xs font-normal text-red-500 ml-2">(User Deleted)</span>
                 </h3>
-                <p class="font-medium" :class="barber.user?.deleted_at ? 'text-red-500' : 'text-gray-600'">
+                <p class="font-medium text-xs sm:text-base break-all" :class="barber.user?.deleted_at ? 'text-red-500' : 'text-gray-600'">
                   {{ barber.user?.email || 'N/A' }}
                 </p>
-                                 <div class="flex items-center justify-between mt-2">
-                   <div class="flex items-center space-x-1">
-                     <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                     </svg>
-                     <span class="text-sm font-bold text-gray-700">4.8</span>
-                     <span class="text-xs text-gray-500 ml-1">(127 reviews)</span>
-                   </div>
-                   <!-- Status Badge -->
-                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                         :class="{
-                           'bg-green-100 text-green-800': barber.is_approved === 1 || barber.is_approved === true,
-                           'bg-yellow-100 text-yellow-800': barber.is_approved === null,
-                           'bg-red-100 text-red-800': barber.is_approved === 0 || barber.is_approved === false
-                         }">
-                     <span v-if="barber.is_approved === 1 || barber.is_approved === true">Active</span>
-                     <span v-else-if="barber.is_approved === null">Pending</span>
-                     <span v-else>Declined</span>
-                   </span>
-                 </div>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 gap-1 sm:gap-0 w-full">
+                  <div class="flex items-center space-x-1">
+                    <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                    <span class="text-xs sm:text-sm font-bold text-gray-700">4.8</span>
+                    <span class="text-xs text-gray-500 ml-1">(127 reviews)</span>
+                  </div>
+                  <!-- Status Badge -->
+                  <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                        :class="{
+                          'bg-green-100 text-green-800': barber.is_approved === 1 || barber.is_approved === true,
+                          'bg-yellow-100 text-yellow-800': barber.is_approved === null,
+                          'bg-red-100 text-red-800': barber.is_approved === 0 || barber.is_approved === false
+                        }">
+                    <span v-if="barber.is_approved === 1 || barber.is_approved === true">Active</span>
+                    <span v-else-if="barber.is_approved === null">Pending</span>
+                    <span v-else>Declined</span>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Card Stats -->
-          <div class="px-6 py-4 bg-gray-50/50">
-            <div class="grid grid-cols-3 gap-4 text-center">
+          <div class="px-4 py-3 sm:px-6 sm:py-4 bg-gray-50/50">
+            <div class="grid grid-cols-3 gap-2 sm:gap-4 text-center">
               <div>
-                <div class="text-lg font-bold text-blue-600">42</div>
+                <div class="text-base sm:text-lg font-bold text-blue-600">42</div>
                 <div class="text-xs text-gray-500 uppercase tracking-wider">This Month</div>
               </div>
               <div>
-                <div class="text-lg font-bold text-green-600">287</div>
+                <div class="text-base sm:text-lg font-bold text-green-600">287</div>
                 <div class="text-xs text-gray-500 uppercase tracking-wider">Total Cuts</div>
               </div>
               <div>
-                <div class="text-lg font-bold text-purple-600">£2.1k</div>
+                <div class="text-base sm:text-lg font-bold text-purple-600">£2.1k</div>
                 <div class="text-xs text-gray-500 uppercase tracking-wider">Revenue</div>
               </div>
             </div>
           </div>
 
           <!-- Card Actions -->
-          <div class="p-6 bg-white">
-            <div class="flex flex-wrap gap-2">
+          <div class="p-4 sm:p-6 bg-white">
+            <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full">
               <button @click="openScheduleModal(barber)"
-                      class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md">
+                      class="w-full sm:flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md">
                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 Schedule
               </button>
               <button @click="openBookingsModal(barber)"
-                      class="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md">
+                      class="w-full sm:flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md">
                 <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
@@ -168,13 +178,13 @@
               </button>
             </div>
             <button v-if="!barber.user?.deleted_at" @click="revokeApproval(barber)"
-                    class="w-full mt-3 px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md">
+                    class="w-full mt-2 px-4 py-2 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white rounded-lg font-medium text-sm transition-all duration-200 shadow-sm hover:shadow-md">
               <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"/>
               </svg>
               Revoke Approval
             </button>
-            <div v-else class="w-full mt-3 px-4 py-2 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm text-center">
+            <div v-else class="w-full mt-2 px-4 py-2 bg-gray-100 text-gray-500 rounded-lg font-medium text-sm text-center">
               User Account Deleted
             </div>
           </div>
@@ -188,9 +198,9 @@
         </div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">No barbers found</h3>
         <p class="text-gray-500 mb-6">{{ searchQuery ? 'Try adjusting your search criteria' : 'Get started by adding your first barber' }}</p>
-                 <a :href="route('barber.register')" class="inline-block px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md">
-           Add First Barber
-         </a>
+                         <button @click="showAddBarberModal = true" class="inline-block px-6 py-3 bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md">
+          Add First Barber
+        </button>
       </div>
 
       <!-- Enhanced Schedule Modal -->
@@ -316,8 +326,24 @@
                 </svg>
                 Recent Bookings
               </h4>
-
-              <div class="overflow-x-auto">
+              <div class="block md:hidden space-y-4">
+                <div v-for="booking in bookings" :key="booking.id" class="rounded-lg bg-white shadow p-4 flex flex-col gap-2">
+                  <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                      {{ booking.customer_name.charAt(0) }}
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ booking.customer_name }}</div>
+                      <div class="text-xs text-gray-500">{{ formatDate(booking.date) }} • {{ formatTime(booking.time) }}</div>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm font-semibold text-green-600">£{{ booking.price }}</div>
+                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                  </div>
+                </div>
+              </div>
+              <div class="hidden md:block overflow-x-auto">
                 <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-sm">
                   <thead class="bg-gray-50">
                     <tr>
@@ -345,8 +371,8 @@
                           </div>
                         </div>
                       </td>
-                      <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ booking.date }}</td>
-                      <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ booking.time }}</td>
+                      <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ formatDate(booking.date) }}</td>
+                      <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatTime(booking.time) }}</td>
                       <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">£{{ booking.price }}</td>
                       <td class="px-4 py-4 whitespace-nowrap">
                         <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -357,7 +383,6 @@
                   </tbody>
                 </table>
               </div>
-
               <!-- Pagination -->
               <div class="mt-6 flex justify-center">
                 <nav class="flex items-center space-x-2">
@@ -374,6 +399,13 @@
           </div>
         </div>
       </div>
+
+      <!-- Add Barber Modal -->
+      <BarberRegisterModal
+        :show="showAddBarberModal"
+        @close="showAddBarberModal = false"
+        @success="handleBarberAdded"
+      />
     </div>
   </SidebarLayout>
 </template>
@@ -381,6 +413,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import SidebarLayout from '@/Layouts/SidebarLayout.vue'
+import BarberRegisterModal from '@/Components/BarberRegisterModal.vue'
 import axios from 'axios'
 import { UserGroupIcon } from '@heroicons/vue/24/outline'
 
@@ -389,6 +422,7 @@ const searchQuery = ref('')
 const statusFilter = ref('')
 const showScheduleModal = ref(false)
 const schedule = ref([])
+const showAddBarberModal = ref(false)
 
 // Manage Bookings modal state
 const showBookingsModal = ref(false)
@@ -450,10 +484,10 @@ async function openBookingsModal(barber) {
   selectedBarber.value = barber
   showBookingsModal.value = true
 
-  // Fetch bookings data
-  const res = await axios.get(`/admin/barbers/${barber.id}/bookings`)
-  bookings.value = res.data.bookings || []
-  totalPages.value = res.data.totalPages || 1
+  // Fetch bookings data for the current page
+  const res = await axios.get(`/admin/barbers/${barber.id}/bookings?page=${currentPage.value}`)
+  bookings.value = res.data.data || []
+  totalPages.value = res.data.last_page || 1
 }
 
 function closeBookingsModal() {
@@ -467,9 +501,13 @@ function toggleSort() {
   // Add sorting logic here
 }
 
-function changePage(page) {
+async function changePage(page) {
   currentPage.value = page
-  // Refetch data for new page
+  if (!selectedBarber.value) return
+  // Fetch bookings data for the new page
+  const res = await axios.get(`/admin/barbers/${selectedBarber.value.id}/bookings?page=${page}`)
+  bookings.value = res.data.data || []
+  totalPages.value = res.data.last_page || 1
 }
 
 async function revokeApproval(barber) {
@@ -477,11 +515,50 @@ async function revokeApproval(barber) {
     try {
       await axios.post(`/admin/barbers/${barber.id}/revoke-approval`)
       // Refresh the barbers list
-      const res = await axios.get('/admin/barbers-manage')
-      barbers.value = res.data.barbers || []
+      await refreshBarbersList()
     } catch (error) {
       console.error('Error revoking approval:', error)
     }
   }
 }
+
+async function handleBarberAdded() {
+  // Refresh the barbers list when a new barber is added
+  await refreshBarbersList()
+}
+
+async function refreshBarbersList() {
+  try {
+    const res = await axios.get('/admin/barbers-manage')
+    barbers.value = res.data.barbers || []
+  } catch (error) {
+    console.error('Error refreshing barbers list:', error)
+  }
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return ''
+  // If timeStr is a full ISO string, extract time part
+  const t = new Date(timeStr)
+  if (!isNaN(t)) {
+    return t.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  }
+  // If it's just HH:MM:SS, format manually
+  return timeStr.slice(0,5)
+}
 </script>
+
+<style scoped>
+@media (max-width: 640px) {
+  .modal-content {
+    padding: 1rem !important;
+    max-width: 98vw !important;
+  }
+}
+</style>

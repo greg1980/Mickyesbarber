@@ -1,75 +1,97 @@
 <template>
   <SidebarLayout>
-    <Head title="Book Appointment" />
+    <Head title="Book Appointment">
+      <meta name="description" content="Book your next haircut or grooming appointment at Mickyes Coiffure, Newcastle's top barbershop." />
+      <meta property="og:title" content="Book Appointment - Mickyes Coiffure" />
+      <meta property="og:description" content="Easily book your next barber appointment online at Mickyes Coiffure." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://mickyes.com/booking/create" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Book Appointment - Mickyes Coiffure" />
+      <meta name="twitter:description" content="Book your next haircut or grooming session online at Mickyes Coiffure." />
+    </Head>
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <!-- Hero Section -->
-      <div class="bg-gradient-to-r from-green-600 to-green-700 text-white py-8 lg:py-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="text-2xl lg:text-4xl font-bold mb-2">Book Your Perfect Cut</h1>
-          <p class="text-green-100 text-lg">Choose your service, date, and preferred barber</p>
+      <div class="bg-gradient-to-r from-gray-400 to-gray-400 text-white w-full max-w-full px-2 py-6 sm:py-8 lg:py-12">
+        <div class="max-w-4xl mx-auto w-full max-w-full px-0 sm:px-4 lg:px-8 text-center">
+          <h1 class="text-lg sm:text-2xl lg:text-4xl font-bold mb-1 sm:mb-2 break-words">Book Your Perfect Cut</h1>
+          <p class="text-gray-100 text-base sm:text-lg break-words">Choose your service, date, and preferred barber</p>
         </div>
       </div>
 
-      <main class="py-6 lg:py-10">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main class="py-4 sm:py-6 lg:py-10">
+        <div class="max-w-4xl mx-auto px-2 sm:px-4 lg:px-8 w-full">
           <!-- Progress Indicator -->
-          <div class="mb-8">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div :class="[
-                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold',
-                  form.service ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
-                ]">1</div>
-                <span class="ml-2 text-sm font-medium text-gray-700">Service</span>
+          <div class="mb-6 sm:mb-8">
+            <!-- Mobile: Only show current step -->
+            <div class="block sm:hidden mb-4">
+              <div class="flex flex-col items-center justify-center">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-base font-semibold bg-green-500 text-white mb-2">{{ currentStep }}</div>
+                <div class="text-sm font-medium text-gray-700 mb-1">{{ currentStepLabel }}</div>
+                <div class="w-full h-1 bg-gray-200 rounded">
+                  <div class="h-full rounded bg-green-500 transition-all duration-300" :style="{ width: stepProgress + '%' }"></div>
+                </div>
               </div>
-              <div class="flex-1 h-1 mx-4 bg-gray-200 rounded">
-                <div :class="[
-                  'h-full rounded transition-all duration-300',
-                  form.service ? 'bg-green-500' : 'bg-gray-200'
-                ]" :style="{ width: form.service ? '25%' : '0%' }"></div>
-              </div>
-              <div class="flex items-center">
-                <div :class="[
-                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold',
-                  form.date ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
-                ]">2</div>
-                <span class="ml-2 text-sm font-medium text-gray-700">Date & Time</span>
-              </div>
-              <div class="flex-1 h-1 mx-4 bg-gray-200 rounded">
-                <div :class="[
-                  'h-full rounded transition-all duration-300',
-                  form.date && form.time ? 'bg-green-500' : 'bg-gray-200'
-                ]" :style="{ width: form.date && form.time ? '50%' : '0%' }"></div>
-              </div>
-              <div class="flex items-center">
-                <div :class="[
-                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold',
-                  form.barber_id ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
-                ]">3</div>
-                <span class="ml-2 text-sm font-medium text-gray-700">Barber</span>
-              </div>
-              <div class="flex-1 h-1 mx-4 bg-gray-200 rounded">
-                <div :class="[
-                  'h-full rounded transition-all duration-300',
-                  form.barber_id ? 'bg-green-500' : 'bg-gray-200'
-                ]" :style="{ width: form.barber_id ? '100%' : '0%' }"></div>
-              </div>
-              <div class="flex items-center">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold bg-gray-300 text-gray-600">4</div>
-                <span class="ml-2 text-sm font-medium text-gray-700">Confirm</span>
+            </div>
+            <!-- Desktop: Full stepper -->
+            <div class="hidden sm:block overflow-x-auto">
+              <div class="flex items-center justify-between min-w-[500px] sm:min-w-0">
+                <div class="flex items-center">
+                  <div :class="[
+                    'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold',
+                    form.service ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+                  ]">1</div>
+                  <span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-gray-700">Service</span>
+                </div>
+                <div class="flex-1 h-1 mx-2 sm:mx-4 bg-gray-200 rounded">
+                  <div :class="[
+                    'h-full rounded transition-all duration-300',
+                    form.service ? 'bg-green-500' : 'bg-gray-200'
+                  ]" :style="{ width: form.service ? '25%' : '0%' }"></div>
+                </div>
+                <div class="flex items-center">
+                  <div :class="[
+                    'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold',
+                    form.date ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+                  ]">2</div>
+                  <span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-gray-700">Date & Time</span>
+                </div>
+                <div class="flex-1 h-1 mx-2 sm:mx-4 bg-gray-200 rounded">
+                  <div :class="[
+                    'h-full rounded transition-all duration-300',
+                    form.date && form.time ? 'bg-green-500' : 'bg-gray-200'
+                  ]" :style="{ width: form.date && form.time ? '50%' : '0%' }"></div>
+                </div>
+                <div class="flex items-center">
+                  <div :class="[
+                    'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold',
+                    form.barber_id ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+                  ]">3</div>
+                  <span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-gray-700">Barber</span>
+                </div>
+                <div class="flex-1 h-1 mx-2 sm:mx-4 bg-gray-200 rounded">
+                  <div :class="[
+                    'h-full rounded transition-all duration-300',
+                    form.barber_id ? 'bg-green-500' : 'bg-gray-200'
+                  ]" :style="{ width: form.barber_id ? '100%' : '0%' }"></div>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold bg-gray-300 text-gray-600">4</div>
+                  <span class="ml-1 sm:ml-2 text-xs sm:text-sm font-medium text-gray-700">Confirm</span>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Main Form Card -->
-          <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="p-6 lg:p-8">
-              <form @submit.prevent="submitForm" class="space-y-8">
+          <div class="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md mx-auto">
+            <div class="p-3 sm:p-6 lg:p-8">
+              <form @submit.prevent="submitForm" class="space-y-6 sm:space-y-8">
                 <!-- Admin/Barber Only Sections -->
-                <div v-if="user.role === 'admin' || user.role === 'barber'" class="space-y-6">
+                <div v-if="user.role === 'admin' || user.role === 'barber'" class="space-y-4 sm:space-y-6">
                   <!-- User Selection Card -->
-                  <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
-                    <h3 class="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                  <div class="bg-blue-50 rounded-xl p-3 sm:p-6 border border-blue-200">
+                    <h3 class="text-base sm:text-lg font-semibold text-blue-900 mb-2 sm:mb-4 flex items-center">
                       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                       </svg>
@@ -83,21 +105,38 @@
                       Loading users...
                     </div>
                     <div v-else-if="userError" class="text-red-600 bg-red-100 p-3 rounded-lg">{{ userError }}</div>
-                    <select
-                      v-else
-                      v-model="form.user_id"
-                      class="w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 text-base p-4"
-                      required
-                    >
-                      <option value="">Select a customer</option>
-                      <option v-for="user in availableUsers" :key="user.id" :value="user.id">
-                        {{ user.name }} ({{ user.email }})
-                      </option>
-                    </select>
+                    <!-- Minimal Custom Dropdown for Customer Selection -->
+                    <div v-else class="relative" ref="customerDropdownRef">
+                      <button
+                        type="button"
+                        @click="toggleCustomerDropdown"
+                        class="w-full bg-white border-2 rounded-xl px-4 py-3 min-h-[44px] text-left shadow-sm focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 text-base transition-all duration-200"
+                        :class="form.user_id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'"
+                      >
+                        <span v-if="!form.user_id" class="text-gray-500">Select a customer</span>
+                        <span v-else class="text-gray-900 font-medium">{{ getSelectedCustomerName() }}</span>
+                        <svg class="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                      </button>
+                      <div v-if="showCustomerDropdown" class="absolute z-20 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-auto">
+                        <button
+                          type="button"
+                          v-for="user in availableUsers"
+                          :key="user.id"
+                          @click="selectCustomer(user)"
+                          class="w-full text-left px-4 py-3 text-base font-medium text-gray-900 hover:bg-blue-50 hover:text-blue-900 border-b border-gray-100 last:border-b-0 transition-colors duration-150"
+                        >
+                          <span class="block">{{ user.name }}</span>
+                          <span class="text-sm text-blue-600 font-semibold">{{ user.email }}</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">Selected: {{ form.user_id }}</div>
                   </div>
 
                   <!-- Skip Payment Option -->
-                  <div class="bg-yellow-50 rounded-xl p-6 border border-yellow-200">
+                  <div class="bg-yellow-50 rounded-xl p-3 sm:p-6 border border-yellow-200">
                     <label class="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -107,16 +146,16 @@
                       />
                       <div class="ml-3">
                         <span class="text-yellow-900 font-medium">Skip payment</span>
-                        <p class="text-yellow-700 text-sm">Book directly without payment processing</p>
+                        <p class="text-yellow-700 text-xs sm:text-sm">Book directly without payment processing</p>
                       </div>
                     </label>
                   </div>
                 </div>
 
                 <!-- Service Selection -->
-                <div class="space-y-4">
-                  <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <svg class="w-6 h-6 mr-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="space-y-2 sm:space-y-4">
+                  <h3 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     Choose Your Service
@@ -129,7 +168,7 @@
                         type="button"
                         @click="toggleServiceDropdown"
                         :class="[
-                          'w-full bg-white border-2 rounded-xl px-4 py-4 text-left shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-opacity-20 text-base transition-all duration-200',
+                          'w-full bg-white border-2 rounded-xl px-4 py-3 min-h-[44px] text-left shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-opacity-20 text-base transition-all duration-200',
                           form.service ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'
                         ]"
                       >
@@ -160,7 +199,7 @@
                     id="service"
                     v-model="form.service"
                     :class="[
-                      'mt-1 hidden md:block w-full rounded-xl border-2 shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-opacity-20 text-base p-4 transition-all duration-200',
+                      'mt-1 hidden md:block w-full rounded-xl border-2 shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-opacity-20 text-base p-3 sm:p-4 min-h-[44px] transition-all duration-200',
                       form.service ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-gray-400'
                     ]"
                     required
@@ -173,11 +212,11 @@
                 </div>
 
                 <!-- Date & Time Selection -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <!-- Date Selection -->
-                  <div class="space-y-4">
-                    <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                      <svg class="w-6 h-6 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div class="space-y-2 sm:space-y-4">
+                    <h3 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
+                      <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                       </svg>
                       Select Date
@@ -187,12 +226,12 @@
                         type="button"
                         @click="toggleCalendar"
                         :class="[
-                          'w-full rounded-xl border-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 bg-white text-left px-4 py-4 text-base transition-all duration-200',
+                          'w-full rounded-xl border-2 shadow-sm focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20 bg-white text-left px-4 py-3 min-h-[44px] text-base transition-all duration-200',
                           form.date ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
                         ]"
                       >
-                        <span v-if="form.date" class="text-gray-900 font-medium">{{ formatDisplayDate(form.date) }}</span>
-                        <span v-else class="text-gray-500">Select a date...</span>
+                        <span v-if="!form.date" class="text-gray-500">Select a date...</span>
+                        <span v-else class="text-gray-900 font-medium">{{ form.date }}</span>
                         <svg class="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
@@ -232,9 +271,9 @@
                   </div>
 
                   <!-- Time Selection -->
-                  <div class="space-y-4">
-                    <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                      <svg class="w-6 h-6 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div class="space-y-2 sm:space-y-4">
+                    <h3 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
+                      <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                       Select Time
@@ -247,7 +286,7 @@
                           type="button"
                           @click="toggleTimeDropdown"
                           :class="[
-                            'w-full bg-white border-2 rounded-xl px-4 py-4 text-left shadow-sm focus:ring-2 focus:ring-purple-500 focus:ring-opacity-20 text-base transition-all duration-200',
+                            'w-full bg-white border-2 rounded-xl px-4 py-3 min-h-[44px] text-left shadow-sm focus:ring-2 focus:ring-purple-500 focus:ring-opacity-20 text-base transition-all duration-200',
                             form.time ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-gray-400'
                           ]"
                         >
@@ -277,7 +316,7 @@
                       id="time"
                       v-model="form.time"
                       :class="[
-                        'mt-1 hidden md:block w-full rounded-xl border-2 shadow-sm focus:ring-2 focus:ring-purple-500 focus:ring-opacity-20 text-base p-4 transition-all duration-200',
+                        'mt-1 hidden md:block w-full rounded-xl border-2 shadow-sm focus:ring-2 focus:ring-purple-500 focus:ring-opacity-20 text-base p-3 sm:p-4 min-h-[44px] transition-all duration-200',
                         form.time ? 'border-purple-500 bg-purple-50' : 'border-gray-300 hover:border-gray-400'
                       ]"
                       required
@@ -292,8 +331,8 @@
 
                 <!-- Barber Selection -->
                 <div v-if="form.date && form.time" class="space-y-4">
-                  <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <svg class="w-6 h-6 mr-3 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <h3 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                     Choose Your Barber
@@ -381,56 +420,51 @@
                 </div>
 
                 <!-- Notes Section -->
-                <div class="space-y-4">
-                  <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-                    <svg class="w-6 h-6 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                <div class="space-y-2 sm:space-y-4">
+                  <h3 class="text-base sm:text-xl font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 mr-2 sm:mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20h9" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Additional Notes
-                    <span class="text-sm text-gray-500 font-normal ml-2">(Optional)</span>
+                    Additional Notes <span class="text-xs text-gray-400 ml-2">(Optional)</span>
                   </h3>
                   <textarea
-                    id="notes"
                     v-model="form.notes"
-                    rows="4"
-                    class="w-full rounded-xl border-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-20 text-base p-4 transition-all duration-200 resize-none"
+                    class="w-full rounded-xl border-2 border-gray-300 shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 focus:ring-opacity-20 text-base p-3 sm:p-4 min-h-[44px]"
+                    rows="3"
                     placeholder="Any specific requests, preferences, or special instructions?"
                   ></textarea>
                 </div>
 
-                <!-- Error Message -->
-                <div v-if="errorMessage" class="bg-red-50 border border-red-200 rounded-xl p-4">
-                  <div class="flex items-center">
-                    <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
-                    <span class="text-red-800 font-medium">{{ errorMessage }}</span>
-                  </div>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="pt-6">
-                  <button
-                    type="submit"
-                    :disabled="form.processing"
-                    :class="[
-                      'w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-xl text-lg font-semibold text-white transition-all duration-200 transform',
-                      form.processing
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:scale-105 shadow-lg hover:shadow-xl'
-                    ]"
-                  >
-                    <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-6 w-6 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <svg v-else class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    {{ form.processing ? 'Processing Your Booking...' : 'Confirm Booking' }}
-                  </button>
-                </div>
+                <!-- Confirm Button (Sticky on mobile) -->
+                <div class="block sm:hidden h-16"></div>
               </form>
+            </div>
+            <!-- Sticky Confirm Button for Mobile -->
+            <div class="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-2 py-3 sm:hidden">
+              <button
+                type="submit"
+                class="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-xl font-semibold text-base shadow-lg hover:bg-green-700 transition-all duration-200"
+                @click="submitForm"
+              >
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Confirm Booking
+              </button>
+            </div>
+            <!-- Desktop Confirm Button -->
+            <div class="hidden sm:block mt-8 px-4 pb-4">
+              <button
+                type="submit"
+                class="w-full flex items-center justify-center px-4 py-4 bg-green-600 text-white rounded-xl font-semibold text-lg shadow-lg hover:bg-green-700 transition-all duration-200"
+                @click="submitForm"
+              >
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Confirm Booking
+              </button>
             </div>
           </div>
         </div>
@@ -634,8 +668,18 @@ const submitForm = async () => {
         skip_payment: form.value.skip_payment
       })
     })
+    if (response.redirected) {
+      window.location.href = response.url
+      return
+    }
     if (!response.ok) {
-      const data = await response.json()
+      let data = {}
+      try {
+        data = await response.json()
+      } catch (e) {
+        errorMessage.value = 'Booking failed'
+        return
+      }
       if (response.status === 409 && data.error) {
         errorMessage.value = data.error
       } else {
@@ -649,15 +693,6 @@ const submitForm = async () => {
     // Only show payment modal if not skipping payment
     if (!data.skip_payment) {
       showPaymentModal.value = true
-    } else {
-      // Redirect to appropriate page based on user role
-      if (props.user.role === 'admin') {
-        window.location.href = '/admin/dashboard'
-      } else if (props.user.role === 'barber') {
-        window.location.href = '/barber/appointments'
-      } else {
-        window.location.href = '/customer/bookings'
-      }
     }
 
     // Reset form
@@ -754,6 +789,50 @@ const formatDisplayDate = (dateString) => {
     day: 'numeric'
   })
 }
+
+const currentStep = computed(() => {
+  if (!form.service) return 1;
+  if (!form.date || !form.time) return 2;
+  if (!form.barber_id) return 3;
+  return 4;
+});
+const currentStepLabel = computed(() => {
+  if (!form.service) return 'Service';
+  if (!form.date || !form.time) return 'Date & Time';
+  if (!form.barber_id) return 'Barber';
+  return 'Confirm';
+});
+const stepProgress = computed(() => {
+  if (!form.service) return 0;
+  if (!form.date || !form.time) return 33;
+  if (!form.barber_id) return 66;
+  return 100;
+});
+
+const showCustomerDropdown = ref(false)
+const customerDropdownRef = ref(null)
+const toggleCustomerDropdown = () => { showCustomerDropdown.value = !showCustomerDropdown.value }
+const selectCustomer = (user) => {
+  console.log('Selecting user:', user)
+  form.value.user_id = String(user.id)
+  console.log('form.value.user_id after select:', form.value.user_id)
+  showCustomerDropdown.value = false
+}
+const getSelectedCustomerName = () => {
+  const user = availableUsers.value.find(u => String(u.id) === String(form.value.user_id))
+  return user ? `${user.name} (${user.email})` : ''
+}
+function handleClickOutsideCustomerDropdown(event) {
+  if (customerDropdownRef.value && !customerDropdownRef.value.contains(event.target)) {
+    showCustomerDropdown.value = false
+  }
+}
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutsideCustomerDropdown)
+})
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutsideCustomerDropdown)
+})
 </script>
 
 <style>

@@ -272,7 +272,7 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <img
-                  :src="booking.user.profile_photo_url || '/images/default-avatar.png'"
+                  :src="booking.user.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user.name || 'User')}&background=6B7280&color=fff&size=128`"
                   :alt="booking.user.name"
                   class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
                 />
@@ -282,12 +282,14 @@
                 </div>
               </div>
               <div class="flex flex-col items-end space-y-1">
-                <span :class="getStatusClass(booking.status)" class="px-2 py-1 text-xs font-semibold rounded-full">
-                  {{ formatStatus(booking.status) }}
-                </span>
-                <span :class="getPaymentStatusClass(booking.payment_status)" class="px-2 py-1 text-xs font-semibold rounded-full">
-                  {{ formatPaymentStatus(booking.payment_status) }}
-                </span>
+                <div class="flex flex-col gap-2 w-full sm:w-auto items-end">
+                  <span :class="getStatusClass(booking.status) + ' w-full sm:w-auto text-center mb-1 sm:mb-0 px-2 py-0.5 text-[10px] font-semibold rounded'">
+                    {{ formatStatus(booking.status) }}
+                  </span>
+                  <span :class="getPaymentStatusClass(booking.payment_status) + ' w-full sm:w-auto text-center px-2 py-0.5 text-[10px] font-semibold rounded'">
+                    {{ formatPaymentStatus(booking.payment_status) }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -392,7 +394,7 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center space-x-3">
                     <img
-                      :src="booking.user.profile_photo_url || '/images/default-avatar.png'"
+                      :src="booking.user.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.user.name || 'User')}&background=6B7280&color=fff&size=128`"
                       :alt="booking.user.name"
                       class="w-10 h-10 rounded-full object-cover ring-2 ring-gray-100"
                     />

@@ -12,7 +12,7 @@ class CustomerDashboardController extends Controller
 {
     public function index()
     {
-        $bookings = Booking::with(['barber.user'])
+        $bookings = Booking::with(['barber.user', 'service'])
             ->where('user_id', Auth::id())
             ->orderBy('booking_time', 'desc')
             ->take(5)
@@ -25,7 +25,7 @@ class CustomerDashboardController extends Controller
 
     public function bookings()
     {
-        $bookings = Booking::with(['barber.user'])
+        $bookings = Booking::with(['barber.user', 'service'])
             ->where('user_id', Auth::id())
             ->orderBy('booking_time', 'desc')
             ->get();

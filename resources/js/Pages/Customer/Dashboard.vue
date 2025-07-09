@@ -1,16 +1,41 @@
 <template>
-    <Head title="Customer Dashboard" />
+    <Head title="Customer Dashboard">
+      <meta name="description" content="Customer dashboard for Mickyes Coiffure. View your appointments, favorite barbers, and spending stats." />
+      <meta property="og:title" content="Customer Dashboard - Mickyes Coiffure" />
+      <meta property="og:description" content="Access your customer dashboard to manage appointments, barbers, and more at Mickyes Coiffure." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://mickyes.com/customer/dashboard" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Customer Dashboard - Mickyes Coiffure" />
+      <meta name="twitter:description" content="Customer dashboard for managing appointments and barbers at Mickyes Coiffure." />
+    </Head>
 
     <SidebarLayout>
         <div class="p-3 lg:p-6 bg-gray-50 min-h-screen">
             <!-- Header -->
-            <div class="bg-white shadow rounded px-3 lg:px-6 py-3 lg:py-4 mb-4 lg:mb-6">
-                <h1 class="text-lg lg:text-xl font-bold flex items-center text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 lg:h-6 lg:w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            <div class="mb-6 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+                <!-- Background Pattern -->
+                <div class="absolute inset-0 opacity-10">
+                    <svg class="w-full h-full" fill="currentColor" viewBox="0 0 100 100">
+                        <pattern id="dashboard-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <circle cx="2" cy="2" r="1"/>
+                            <circle cx="18" cy="18" r="1"/>
+                            <circle cx="10" cy="10" r="0.5"/>
+                        </pattern>
+                        <rect width="100" height="100" fill="url(#dashboard-pattern)"/>
                     </svg>
-                    Customer Dashboard
-                </h1>
+                </div>
+                <div class="relative z-10 flex items-center space-x-4">
+                    <div class="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold mb-2">Customer Dashboard</h1>
+                        <p class="text-blue-100 text-lg">Your personal hub for appointments, barbers, and spending</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Success Message -->
@@ -101,27 +126,30 @@
                     </div>
 
                     <!-- Bookings per Barber Card -->
-                    <div class="bg-white shadow-lg border border-gray-300 rounded p-4 lg:p-6 w-full flex flex-col h-52 lg:h-64 transition-transform duration-200 hover:scale-105 hover:shadow-2xl">
+                    <div class="bg-white shadow-lg border border-gray-300 rounded p-4 lg:p-6 w-full flex flex-col transition-transform duration-200 hover:scale-105 hover:shadow-2xl">
                         <h3 class="text-base lg:text-lg font-semibold mb-2 lg:mb-4 text-gray-600 flex items-center gap-2">
                             <div class="h-5 w-5 lg:h-6 lg:w-6 bg-purple-100 rounded-full flex items-center justify-center">
                                 <ChartPieIcon class="w-3 h-3 lg:w-4 lg:h-4 text-purple-600" />
                             </div>
                             <span class="text-sm lg:text-base">Bookings per Barber</span>
                         </h3>
-                        <div class="flex-1 flex flex-col items-center justify-center w-full">
+                        <div class="flex-1 flex flex-col xs:flex-row items-center justify-center w-full gap-2 xs:gap-4">
                             <!-- Chart Container -->
-                            <div class="flex justify-center mb-2 lg:mb-3">
-                                <DoughnutChart :data="doughnutData3" :options="doughnutOptions" style="max-width:80px; height:80px;" class="lg:max-w-[100px] lg:h-24" />
+                            <div class="flex justify-center items-center mb-2 lg:mb-3 w-full xs:w-auto">
+                                <DoughnutChart :data="doughnutData3" :options="doughnutOptions" style="max-width:80px; height:80px; min-width:60px;" class="mx-auto xs:mx-0 lg:max-w-[100px] lg:h-24" />
                             </div>
-                            <!-- Legend below chart -->
-                            <div v-if="doughnutData3.labels.length" class="w-full">
-                                <ul class="text-xs text-gray-700 text-center space-y-0.5">
-                                    <li v-for="(label, idx) in doughnutData3.labels" :key="label" class="flex items-center justify-center">
+                            <!-- Legend below chart on mobile, right on larger screens -->
+                            <div v-if="doughnutData3.labels.length" class="w-full xs:w-auto overflow-x-auto px-2">
+                                <ul class="text-xs text-gray-700 text-center xs:text-left space-y-0.5 w-full">
+                                    <li v-for="(label, idx) in doughnutData3.labels" :key="label" class="flex items-center justify-center xs:justify-start whitespace-nowrap w-full">
                                         <div
                                             class="w-2 h-2 rounded-full mr-2 flex-shrink-0"
                                             :style="{ backgroundColor: doughnutData3.datasets[0].backgroundColor[idx] }"
                                         ></div>
-                                        <span class="font-medium">{{ label }}: {{ doughnutData3.datasets[0].data[idx] }}</span>
+                                        <span class="font-medium break-words truncate" style="max-width: 110px; display: inline-block;">
+                                            {{ label }}
+                                        </span>
+                                        <span class="font-medium ml-1">: {{ doughnutData3.datasets[0].data[idx] }}</span>
                                     </li>
                                 </ul>
                             </div>
@@ -165,6 +193,41 @@
 
                 <!-- Right: Appointments -->
                 <div class="w-full lg:w-2/3">
+                    <!-- Quick Actions Row -->
+                    <div class="mb-4 flex flex-wrap gap-2">
+                        <!-- Book New Appointment -->
+                        <Link :href="route('booking.create')"
+                              class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border border-green-200 rounded-lg transition-all duration-200 group text-sm font-medium">
+                            <div class="h-6 w-6 bg-green-500 rounded-md flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                                <CalendarIcon class="w-3 h-3 text-white" />
+                            </div>
+                            <span class="text-green-900">Book Appointment</span>
+                        </Link>
+
+                        <!-- View All Bookings -->
+                        <Link :href="route('customer.bookings')"
+                              class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border border-blue-200 rounded-lg transition-all duration-200 group text-sm font-medium">
+                            <div class="h-6 w-6 bg-blue-500 rounded-md flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                            </div>
+                            <span class="text-blue-900">View All Bookings</span>
+                        </Link>
+
+                        <!-- Rebook with Favorite -->
+                        <button v-if="favouriteBarber"
+                                @click="rebookWithFavorite"
+                                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 border border-purple-200 rounded-lg transition-all duration-200 group text-sm font-medium">
+                            <div class="h-6 w-6 bg-purple-500 rounded-md flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </div>
+                            <span class="text-purple-900">Rebook Favorite</span>
+                        </button>
+                    </div>
+
                     <div class="space-y-4 bg-white shadow-lg border border-gray-300 rounded p-4 lg:p-6">
                         <h2 class="text-base lg:text-lg font-semibold text-gray-600 flex items-center gap-2">
                             <div class="h-5 w-5 lg:h-6 lg:w-6 bg-blue-100 rounded-full flex items-center justify-center">
@@ -172,16 +235,55 @@
                             </div>
                             Your Appointments
                         </h2>
-                        <div v-if="bookings.length" class="grid gap-3 lg:gap-4">
-                            <div v-for="booking in bookings" :key="booking.id" class="bg-gray-100 p-3 lg:p-4 rounded-xl">
-                                <p class="font-semibold text-gray-600 text-sm lg:text-base">Service: {{ booking.service_name || booking.service?.name || 'N/A' }}</p>
-                                <p class="text-xs lg:text-sm text-gray-500">
-                                    Barber: {{ booking.barber?.user?.name || 'N/A' }}<br />
-                                    {{ booking.booking_time ? new Date(booking.booking_time).toLocaleString() : 'N/A' }}
-                                </p>
-                                <span class="text-xs uppercase px-2 py-1 rounded font-medium" :class="getStatusClass(booking.status)">
-                                    {{ booking.status || 'N/A' }}
-                                </span>
+                        <div v-if="bookings.length" class="space-y-3">
+                            <div v-for="booking in bookings" :key="booking.id" class="bg-gray-50 border border-gray-200 p-4 rounded-xl hover:bg-gray-100 transition-colors duration-200">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <h4 class="font-semibold text-gray-900 text-sm lg:text-base">
+                                                {{ booking.service_name || booking.service?.name || 'Service N/A' }}
+                                            </h4>
+                                            <span class="text-xs uppercase px-2 py-1 rounded-full font-medium" :class="getStatusClass(booking.status)">
+                                                {{ booking.status || 'N/A' }}
+                                            </span>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs lg:text-sm text-gray-600">
+                                            <div class="flex items-center gap-1">
+                                                <UserIcon class="w-4 h-4 text-gray-400" />
+                                                <span>{{ booking.barber?.user?.name || 'Barber N/A' }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <CalendarIcon class="w-4 h-4 text-gray-400" />
+                                                <span>{{ booking.booking_time ? formatDate(booking.booking_time) : 'Date N/A' }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                                <span>{{ booking.booking_time ? formatTime(booking.booking_time) : 'Time N/A' }}</span>
+                                            </div>
+                                            <div v-if="booking.service?.price" class="flex items-center gap-1">
+                                                <CurrencyDollarIcon class="w-4 h-4 text-gray-400" />
+                                                <span>£{{ booking.service.price }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quick Actions -->
+                                    <div v-if="booking.status !== 'completed' && booking.status !== 'cancelled'" class="ml-4">
+                                        <div class="flex flex-col gap-2">
+                                            <button v-if="booking.status === 'confirmed'"
+                                                    class="px-3 py-1 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded-md transition-colors duration-200">
+                                                Check In
+                                            </button>
+                                            <button v-if="booking.status === 'confirmed'"
+                                                    class="px-3 py-1 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md transition-colors duration-200">
+                                                Reschedule
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <p v-else class="text-sm lg:text-base text-gray-500">No appointments yet.</p>
@@ -323,6 +425,13 @@ function handleBarberSuccess() {
   barberSuccessMessage.value = 'Your application has been submitted and is pending admin approval.'
   showBarberModal.value = false
   setTimeout(() => { barberSuccessMessage.value = '' }, 5000)
+}
+
+function rebookWithFavorite() {
+  if (favouriteBarber.value) {
+    // Navigate to booking page with pre-selected barber
+    window.location.href = route('booking.create') + '?barber=' + favouriteBarber.value.id
+  }
 }
 
 onMounted(async () => {

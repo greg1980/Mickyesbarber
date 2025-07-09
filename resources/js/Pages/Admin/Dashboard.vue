@@ -6,7 +6,7 @@
             <!-- Enhanced Premium Admin Header Banner -->
             <div class="mb-8">
                 <!-- Professional Admin Header Banner -->
-                <div class="bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 rounded-2xl shadow-xl p-8 text-white mb-6 relative overflow-hidden">
+                <div class="bg-gradient-to-r from-gray-700 via-gray-800 to-gray-900 rounded-2xl shadow-xl p-4 sm:p-8 text-white mb-6 relative overflow-hidden">
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 opacity-10">
                         <svg class="w-full h-full" fill="currentColor" viewBox="0 0 100 100">
@@ -19,17 +19,17 @@
                         </svg>
                     </div>
 
-                    <div class="relative z-10 flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
-                            <div class="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3 sm:space-x-4">
+                            <div class="h-12 w-12 sm:h-16 sm:w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                                <svg class="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                                 </svg>
                             </div>
                             <div>
-                                <h1 class="text-4xl font-bold mb-2">Admin Management Hub</h1>
-                                <p class="text-gray-100 text-lg">Administrative Dashboard • Mickyes Coiffure</p>
-                                <p class="text-gray-200 text-sm mt-1">Monitor operations, manage users, and oversee business performance</p>
+                                <h1 class="text-2xl sm:text-4xl font-bold mb-1 sm:mb-2 leading-tight">Admin Management Hub</h1>
+                                <p class="text-gray-100 text-base sm:text-lg">Administrative Dashboard • Mickyes Coiffure</p>
+                                <p class="text-gray-200 text-xs sm:text-sm mt-1">Monitor operations, manage users, and oversee business performance</p>
                             </div>
                         </div>
 
@@ -46,7 +46,7 @@
                 </div>
 
                 <!-- Admin Activity Status -->
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
                     <div class="flex items-center space-x-2">
                         <div class="h-2 w-2 bg-gray-500 rounded-full animate-pulse"></div>
                         <span class="text-sm font-medium text-gray-700">Admin Panel Active</span>
@@ -86,35 +86,49 @@
             </div>
 
                         <!-- Enhanced Premium Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 items-stretch">
                 <!-- Premium Top Barber Card -->
-                <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden h-80">
+                <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col h-80">
                     <!-- Subtle background gradient -->
                     <div class="absolute inset-0 bg-gradient-to-br from-yellow-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-                    <div class="relative z-10 h-full flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider flex items-center gap-3">
-                                <div class="h-10 w-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                    <StarIcon class="w-6 h-6 text-white" />
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                            <h3 class="text-xs sm:text-sm font-semibold text-gray-600 mb-1 sm:mb-2 uppercase tracking-wider flex items-center gap-2 sm:gap-3">
+                                <div class="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                    <StarIcon class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                 </div>
                                 Top Performer
                             </h3>
                         </div>
 
                         <!-- Content area with fixed height -->
-                        <div class="flex-grow">
-                            <div class="flex items-center space-x-3">
-                                <img :src="props.topBarber.photo || '/images/default-avatar.png'"
+                        <div class="flex-1 flex flex-col">
+                            <div v-if="props.topBarber" class="flex items-center space-x-3">
+                                <img :src="props.topBarber.photo || 'https://ui-avatars.com/api/?name=Default&background=6B7280&color=fff&size=128'"
                                      alt="Top Barber"
-                                     class="w-16 h-16 rounded-2xl object-cover border-2 border-yellow-200 shadow-lg" />
+                                     class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl object-cover border-2 border-yellow-200 shadow-lg" />
                                 <div>
-                                    <div class="text-xl font-bold text-gray-900">{{ props.topBarber.name }}</div>
-                                    <div class="text-sm text-gray-600 font-medium">{{ props.topBarber.haircuts }} services completed</div>
+                                    <div class="text-lg sm:text-xl font-bold text-gray-900">{{ props.topBarber.name }}</div>
+                                    <div class="text-xs sm:text-sm text-gray-600 font-medium">{{ props.topBarber.haircuts }} services completed</div>
                                     <div class="flex items-center mt-1">
-                                        <span class="text-lg font-bold text-yellow-600">{{ props.topBarber.rating }}</span>
+                                        <span class="text-base sm:text-lg font-bold text-yellow-600">{{ props.topBarber.rating }}</span>
                                         <span class="text-yellow-400 ml-1">⭐</span>
                                         <span class="text-xs text-gray-500 ml-2">Excellent rating</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="flex items-center space-x-3">
+                                <img src="https://ui-avatars.com/api/?name=No+Barbers&background=6B7280&color=fff&size=128"
+                                     alt="No Top Barber"
+                                     class="w-16 h-16 rounded-2xl object-cover border-2 border-gray-200 shadow-lg" />
+                                <div>
+                                    <div class="text-xl font-bold text-gray-500">No barbers yet</div>
+                                    <div class="text-sm text-gray-400 font-medium">0 services completed</div>
+                                    <div class="flex items-center mt-1">
+                                        <span class="text-lg font-bold text-gray-400">0</span>
+                                        <span class="text-gray-300 ml-1">⭐</span>
+                                        <span class="text-xs text-gray-400 ml-2">No ratings yet</span>
                                     </div>
                                 </div>
                             </div>
@@ -123,29 +137,29 @@
                         <!-- Progress bar - positioned at bottom -->
                         <div class="mt-auto">
                             <div class="bg-gray-100 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 h-2 rounded-full" :style="`width: ${Math.min((props.topBarber.rating / 5) * 100, 100)}%`"></div>
+                                <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 h-2 rounded-full" :style="`width: ${props.topBarber ? Math.min((props.topBarber.rating / 5) * 100, 100) : 0}%`"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Premium Pending Approvals Card -->
-                <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden h-80">
+                <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col h-80">
                     <!-- Subtle background gradient -->
                     <div class="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-                    <div class="relative z-10 h-full flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider flex items-center gap-3">
-                                <div class="h-10 w-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                    <ClockIcon class="w-6 h-6 text-white" />
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                            <h3 class="text-xs sm:text-sm font-semibold text-gray-600 mb-1 sm:mb-2 uppercase tracking-wider flex items-center gap-2 sm:gap-3">
+                                <div class="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                    <ClockIcon class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                 </div>
                                 Pending Reviews
                             </h3>
                         </div>
 
                         <!-- Content area with fixed height -->
-                        <div class="flex-grow">
+                        <div class="flex-1 flex flex-col">
                             <div v-if="pendingBarbers.length > 0" class="space-y-4">
                                 <div v-if="pendingBarbers[0]" :key="pendingBarbers[0].id" class="bg-gray-50 rounded-xl p-4">
                                     <div class="flex justify-between items-start">
@@ -189,40 +203,40 @@
                 </div>
 
                 <!-- Premium System Stats Card -->
-                <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden h-80">
+                <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 cursor-pointer relative overflow-hidden flex flex-col h-80">
                     <!-- Subtle background gradient -->
                     <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-                    <div class="relative z-10 h-full flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wider flex items-center gap-3">
-                                <div class="h-10 w-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                    <UsersIcon class="w-6 h-6 text-white" />
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div class="flex items-center justify-between mb-2 sm:mb-4">
+                            <h3 class="text-xs sm:text-sm font-semibold text-gray-600 mb-1 sm:mb-2 uppercase tracking-wider flex items-center gap-2 sm:gap-3">
+                                <div class="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                    <UsersIcon class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                                 </div>
                                 System Overview
                             </h3>
                         </div>
 
                         <!-- Content area with fixed height -->
-                        <div class="flex-grow">
+                        <div class="flex-1 flex flex-col">
                             <div class="space-y-4">
-                                <div class="flex items-center justify-between bg-blue-50 rounded-lg p-3">
-                                    <span class="text-sm font-semibold text-gray-700">Total Users</span>
-                                    <span class="text-2xl font-bold text-blue-600">{{ props.stats.totalUsers }}</span>
+                                <div class="flex items-center justify-between bg-blue-50 rounded-lg p-2 sm:p-3">
+                                    <span class="text-xs sm:text-sm font-semibold text-gray-700">Total Users</span>
+                                    <span class="text-lg sm:text-2xl font-bold text-blue-600">{{ props.stats.totalUsers }}</span>
                                 </div>
-                                <div class="flex items-center justify-between bg-green-50 rounded-lg p-3">
-                                    <span class="text-sm font-semibold text-gray-700">Active Barbers</span>
-                                    <span class="text-2xl font-bold text-green-600">{{ props.stats.activeBarbers }}</span>
+                                <div class="flex items-center justify-between bg-green-50 rounded-lg p-2 sm:p-3">
+                                    <span class="text-xs sm:text-sm font-semibold text-gray-700">Active Barbers</span>
+                                    <span class="text-lg sm:text-2xl font-bold text-green-600">{{ props.stats.activeBarbers }}</span>
                                 </div>
-                                <div class="flex items-center justify-between bg-purple-50 rounded-lg p-3">
-                                    <span class="text-sm font-semibold text-gray-700">Total Appointments</span>
-                                    <span class="text-2xl font-bold text-purple-600">{{ props.stats.totalAppointments }}</span>
+                                <div class="flex items-center justify-between bg-purple-50 rounded-lg p-2 sm:p-3">
+                                    <span class="text-xs sm:text-sm font-semibold text-gray-700">Total Appointments</span>
+                                    <span class="text-lg sm:text-2xl font-bold text-purple-600">{{ props.stats.totalAppointments }}</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- System health indicator - positioned at bottom -->
-                        <div class="mt-auto">
+                        <div class="mt-auto mt-10">
                             <div class="bg-gray-100 rounded-full h-2">
                                 <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full" style="width: 95%"></div>
                             </div>
@@ -236,30 +250,30 @@
             <div class="mb-8">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                     <!-- Enhanced header -->
-                    <div class="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-gray-100">
-                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-3">
-                            <div class="h-10 w-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
-                                <BellIcon class="w-6 h-6 text-white" />
+                    <div class="bg-gradient-to-r from-orange-50 to-red-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+                            <div class="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
+                                <BellIcon class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                             </div>
                             Recent Activity Monitor
                         </h2>
-                        <p class="text-sm text-gray-600 mt-1">Live system activity and user interactions</p>
+                        <p class="text-xs sm:text-sm text-gray-600 mt-1">Live system activity and user interactions</p>
                     </div>
 
-                    <div class="p-6">
+                    <div class="p-4 sm:p-6">
                         <div v-if="recentActivity.length > 0" class="w-full">
-                            <div class="flex w-full items-center justify-between">
+                            <div class="flex items-center w-full justify-center gap-4">
                                 <button @click="prevActivity"
-                                        class="p-3 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl hover:from-orange-200 hover:to-orange-300 border border-orange-200 transition-all duration-200 group">
-                                    <svg class="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="p-2 sm:p-3 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl hover:from-orange-200 hover:to-orange-300 border border-orange-200 transition-all duration-200 group">
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                                     </svg>
                                 </button>
 
-                                <div class="flex-1 text-center mx-6 bg-gray-50 rounded-xl p-4">
-                                    <p class="text-lg font-semibold text-gray-900 mb-2">{{ recentActivity[currentActivity].description }}</p>
-                                    <p class="text-sm text-gray-600 flex items-center justify-center">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div class="flex-1 text-center mx-2 sm:mx-6 bg-gray-50 rounded-xl p-3 sm:p-4">
+                                    <p class="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">{{ recentActivity[currentActivity].description }}</p>
+                                    <p class="text-xs sm:text-sm text-gray-600 flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                         {{ recentActivity[currentActivity].date }}
@@ -267,16 +281,16 @@
                                 </div>
 
                                 <button @click="nextActivity"
-                                        class="p-3 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl hover:from-orange-200 hover:to-orange-300 border border-orange-200 transition-all duration-200 group">
-                                    <svg class="w-6 h-6 text-orange-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        class="p-2 sm:p-3 bg-gradient-to-r from-orange-100 to-orange-200 rounded-xl hover:from-orange-200 hover:to-orange-300 border border-orange-200 transition-all duration-200 group">
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                                     </svg>
                                 </button>
                             </div>
                         </div>
-                        <div v-else class="text-center py-12">
-                            <div class="text-6xl mb-4">📊</div>
-                            <p class="text-xl font-semibold text-gray-700 mb-2">No recent activity</p>
+                        <div v-else class="text-center py-8 sm:py-12">
+                            <div class="text-4xl sm:text-6xl mb-2 sm:mb-4">📊</div>
+                            <p class="text-lg sm:text-xl font-semibold text-gray-700 mb-1 sm:mb-2">No recent activity</p>
                             <p class="text-gray-500">System activity will appear here as it happens</p>
                         </div>
                     </div>
@@ -287,20 +301,20 @@
             <div class="max-w-7xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                     <!-- Enhanced section header -->
-                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-6 py-4 border-b border-gray-100">
-                        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-3">
-                            <div class="h-10 w-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                                <CalendarDaysIcon class="w-6 h-6 text-white" />
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+                        <h2 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 sm:gap-3">
+                            <div class="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <CalendarDaysIcon class="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                             </div>
                             Today's Appointment Management
                         </h2>
-                        <p class="text-sm text-gray-600 mt-1">Monitor and manage all appointment slots for {{ today }}</p>
+                        <p class="text-xs sm:text-sm text-gray-600 mt-1">Monitor and manage all appointment slots for {{ today }}</p>
                     </div>
 
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
                             <div v-for="slot in slots" :key="slot.time"
-                                 class="bg-gray-50 border-2 border-gray-200 hover:border-blue-300 rounded-xl p-4 transition-all duration-200 hover:shadow-lg">
+                                 class="bg-gray-50 border-2 border-gray-200 hover:border-blue-300 rounded-xl p-3 sm:p-4 transition-all duration-200 hover:shadow-lg">
 
                                 <!-- Time header -->
                                 <div class="flex items-center justify-center mb-4">
@@ -453,3 +467,12 @@ function statusClass(status) {
   return 'text-gray-500'
 }
 </script>
+
+<style scoped>
+@media (max-width: 640px) {
+  .min-h-80, .h-80 {
+    min-height: 12rem !important;
+    height: auto !important;
+  }
+}
+</style>

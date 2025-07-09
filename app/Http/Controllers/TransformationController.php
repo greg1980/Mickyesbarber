@@ -60,8 +60,8 @@ class TransformationController extends Controller
     {
         $user = Auth::user();
         $validated = $request->validate([
-            'before_photo' => 'required|image',
-            'after_photo' => 'required|image',
+            'before_photo' => 'required|image|max:2048',
+            'after_photo' => 'required|image|max:2048',
             'style' => 'required|string',
             'review' => 'nullable|string',
             'rating' => 'required|integer|min:1|max:5',

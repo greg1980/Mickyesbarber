@@ -220,7 +220,7 @@
             <!-- Enhanced Notifications Dropdown -->
             <div
               v-show="showNotifications"
-              class="absolute right-0 mt-3 w-80 lg:w-96 bg-white shadow-xl z-[9999] border border-gray-200 rounded-xl overflow-hidden"
+              class="absolute right-0 mt-3 w-80 lg:w-96 bg-white shadow-xl z-[9999] border border-gray-200 rounded-xl overflow-hidden ml-4 pl-4 sm:ml-0 sm:pl-0"
               @click.stop
             >
               <div class="p-5 border-b border-gray-100 bg-gray-50">
@@ -258,39 +258,39 @@
                     class="p-4 hover:bg-gray-50 group cursor-pointer transition-colors duration-200"
                     :class="{ 'bg-blue-50 border-l-4 border-blue-500': !notification.is_read }"
                   >
-                                          <div class="flex justify-between items-start">
-                        <div
-                          class="flex items-start space-x-3 flex-1"
-                          @click="markAsRead(notification)"
-                        >
-                          <div class="flex-shrink-0 mt-1">
-                            <component
-                              :is="getNotificationStyle(notification.type).icon"
-                              :class="['w-6 h-6', getNotificationStyle(notification.type).color]"
-                            />
-                          </div>
-                          <div class="flex-1 min-w-0">
-                            <p class="font-semibold text-gray-900 text-sm">{{ notification.title }}</p>
-                            <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ notification.message }}</p>
-                            <p class="text-xs text-gray-400 mt-2 flex items-center">
-                              <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                              </svg>
-                              {{ new Date(notification.created_at).toLocaleString() }}
-                            </p>
-                          </div>
+                    <div class="flex justify-between items-start">
+                      <div
+                        class="flex items-start space-x-3 flex-1"
+                        @click="markAsRead(notification)"
+                      >
+                        <div class="flex-shrink-0 mt-1">
+                          <component
+                            :is="getNotificationStyle(notification.type).icon"
+                            :class="['w-6 h-6', getNotificationStyle(notification.type).color]"
+                          />
                         </div>
-                        <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
-                          <span v-if="!notification.is_read" class="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></span>
-                          <button
-                            @click.stop="deleteNotification(notification)"
-                            class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 rounded hover:bg-red-50"
-                            title="Delete notification"
-                          >
-                            <TrashIcon class="w-4 h-4" />
-                          </button>
+                        <div class="flex-1 min-w-0">
+                          <p class="font-semibold text-gray-900 text-sm">{{ notification.title }}</p>
+                          <p class="text-sm text-gray-600 mt-1 leading-relaxed">{{ notification.message }}</p>
+                          <p class="text-xs text-gray-400 mt-2 flex items-center">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{ new Date(notification.created_at).toLocaleString() }}
+                          </p>
                         </div>
                       </div>
+                      <div class="flex items-center space-x-2 ml-3 flex-shrink-0">
+                        <span v-if="!notification.is_read" class="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></span>
+                        <button
+                          @click.stop="deleteNotification(notification)"
+                          class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1 rounded hover:bg-red-50"
+                          title="Delete notification"
+                        >
+                          <TrashIcon class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -321,6 +321,8 @@
           </div>
         </div>
       </nav>
+      <!-- Gradient Accent Bar -->
+      <div class="h-0.5 w-full bg-gradient-to-r from-blue-500 via-green-400 to-purple-500 shadow-md"></div>
       <!-- Main Content -->
       <main class="flex-1 bg-white p-3 lg:p-6">
         <slot />

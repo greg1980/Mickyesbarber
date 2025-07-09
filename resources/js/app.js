@@ -4,7 +4,15 @@ import './bootstrap';
 import axios from 'axios';
 
 axios.defaults.withCredentials = true;
-axios.defaults.withXSRFToken = true; // optional, for Laravel CSRF token
+axios.defaults.withXSRFToken = true;
+
+// Set CSRF token for all requests
+const token = document.head.querySelector('meta[name="csrf-token"]');
+if (token) {
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+} else {
+    console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
+}
 
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';

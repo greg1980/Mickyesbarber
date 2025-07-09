@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Barber;
+use App\Models\Notification;
 
 class AdminUserController extends Controller
 {
@@ -23,7 +26,8 @@ class AdminUserController extends Controller
             $query->onlyTrashed();
         }
 
-        $users = $query->paginate(10)->withQueryString();
+        $perPage = $request->input('perPage', 10);
+        $users = $query->paginate($perPage)->withQueryString();
         $totalUsers = User::count();
         $activeUsers = User::whereNotNull('email_verified_at')->count();
         $inactiveUsers = User::whereNull('email_verified_at')->count();
@@ -152,17 +156,17 @@ class AdminUserController extends Controller
     public function barberBookings($barberId)
     {
         $bookings = \App\Models\Booking::where('barber_id', $barberId)
-            ->with('customer')
-            ->orderBy('date', 'desc')
+            ->with('user')
+            ->orderBy('booking_date', 'desc')
             ->paginate(10);
 
         $bookings->getCollection()->transform(function($booking) {
             return [
                 'id' => $booking->id,
-                'customer_name' => $booking->customer->name,
-                'date' => $booking->date,
-                'time' => $booking->time,
-                'price' => $booking->price,
+                'customer_name' => $booking->user ? $booking->user->name : 'N/A',
+                'date' => $booking->booking_date,
+                'time' => $booking->booking_time,
+                'price' => $booking->service_price,
             ];
         });
 
@@ -192,5 +196,83 @@ class AdminUserController extends Controller
             }])
             ->get();
         return response()->json(['barbers' => $barbers]);
+    }
+
+    public function addBarber(Request $request)
+    {
+        $request->validate([
+            'user_type' => 'required|in:existing,new',
+            'bio' => 'required|string|max:1000',
+            'years_of_experience' => 'required|integer|min:0|max:80',
+            'mobile_contact' => [
+                'required',
+                'string',
+                'max:30',
+                'regex:/^[0-9\-\+\(\)\s]+$/'
+            ],
+            // New user fields
+            'name' => 'required_if:user_type,new|string|max:255',
+            'email' => 'required_if:user_type,new|string|email|max:255|unique:users',
+            'password' => 'required_if:user_type,new|string|min:8',
+            // Existing user fields
+            'existing_email' => 'required_if:user_type,existing|string|email|max:255|exists:users,email',
+        ]);
+
+        try {
+            if ($request->user_type === 'new') {
+                // Create new user account
+                $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'role' => User::ROLE_BARBER,
+                ]);
+            } else {
+                // Find existing user
+                $user = User::where('email', $request->existing_email)->first();
+
+                if (!$user) {
+                    return back()->withErrors(['existing_email' => 'User not found with this email address.']);
+                }
+
+                // Check if user is already a barber
+                if (Barber::where('user_id', $user->id)->exists()) {
+                    return back()->withErrors(['existing_email' => 'This user is already registered as a barber.']);
+                }
+
+                // Update user role to barber if they're currently a customer
+                if ($user->role === User::ROLE_CUSTOMER) {
+                    $user->update(['role' => User::ROLE_BARBER]);
+                }
+            }
+
+            // Create barber profile
+            Barber::create([
+                'user_id' => $user->id,
+                'bio' => $request->bio,
+                'years_of_experience' => $request->years_of_experience,
+                'mobile_contact' => $request->mobile_contact,
+                'is_approved' => true, // Auto-approve admin-added barbers
+            ]);
+
+            // Notify the user
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'system',
+                'title' => 'Barber Account Created',
+                'message' => 'Your barber account has been created and approved by an administrator.',
+                'data' => ['admin_id' => auth()->id()],
+            ]);
+
+            return redirect()->back()->with('success',
+                $request->user_type === 'new'
+                    ? 'New user and barber profile created successfully!'
+                    : 'Barber profile added to existing user successfully!'
+            );
+
+        } catch (\Exception $e) {
+            \Log::error('Error adding barber: ' . $e->getMessage());
+            return back()->withErrors(['general' => 'An error occurred while adding the barber. Please try again.']);
+        }
     }
 }

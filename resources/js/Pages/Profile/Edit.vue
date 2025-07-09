@@ -17,7 +17,16 @@ defineProps({
 </script>
 
 <template>
-    <Head title="Profile" />
+    <Head title="Profile">
+      <meta name="description" content="Edit your profile, update your password, and manage your account at Mickyes Coiffure." />
+      <meta property="og:title" content="Edit Profile - Mickyes Coiffure" />
+      <meta property="og:description" content="Manage your account settings, update your profile photo, and change your password at Mickyes Coiffure." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://mickyes.com/profile/edit" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Edit Profile - Mickyes Coiffure" />
+      <meta name="twitter:description" content="Edit your profile and manage your account at Mickyes Coiffure." />
+    </Head>
 
     <SidebarLayout>
         <div class="p-6">

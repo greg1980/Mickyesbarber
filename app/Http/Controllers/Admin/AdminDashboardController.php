@@ -134,6 +134,16 @@ class AdminDashboardController extends Controller
             ->sortByDesc('rating')
             ->first();
 
+        // Provide default values if no barbers exist
+        if (!$topBarber) {
+            $topBarber = [
+                'name' => 'No barbers yet',
+                'photo' => 'https://ui-avatars.com/api/?name=No+Barbers&background=6B7280&color=fff&size=128',
+                'haircuts' => 0,
+                'rating' => 0,
+            ];
+        }
+
         // Pending barbers (is_approved is null)
         $pendingBarbers = \App\Models\Barber::with('user')
             ->whereNull('is_approved')

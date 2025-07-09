@@ -33,7 +33,16 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
+        <Head title="Reset Password">
+          <meta name="description" content="Reset your Mickyes Coiffure account password securely online." />
+          <meta property="og:title" content="Reset Password - Mickyes Coiffure" />
+          <meta property="og:description" content="Reset your Mickyes Coiffure account password securely online." />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://mickyes.com/reset-password" />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="Reset Password - Mickyes Coiffure" />
+          <meta name="twitter:description" content="Reset your Mickyes Coiffure account password securely online." />
+        </Head>
 
         <form @submit.prevent="submit">
             <div>

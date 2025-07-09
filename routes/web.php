@@ -54,7 +54,7 @@ Route::get('/about', function () {
                 'name' => $barber->user->name ?? 'Unknown',
                 'bio' => $barber->bio ?? 'Professional barber dedicated to providing excellent service.',
                 'years_of_experience' => $barber->years_of_experience ?? 5,
-                'photo_url' => $barber->user->profile_photo_url ?? '/images/default-avatar.png',
+                'photo_url' => $barber->user->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($barber->user->name ?? 'User') . '&background=6B7280&color=fff&size=128',
                 'avg_rating' => $avgRating,
                 'total_reviews' => $totalReviews,
                 'title' => $barber->years_of_experience >= 10 ? 'Master Barber' :
@@ -78,7 +78,7 @@ Route::get('/contact', function () {
 Route::get('/register-barber', [BarberRegisterController::class, 'showForm'])
     ->name('barber.register.form');
 Route::post('/register-barber', [BarberRegisterController::class, 'register'])
-    ->name('barber.register');
+    ->name('barber.register.submit');
 
 // Dashboard routes
 Route::middleware(['auth'])->group(function () {
@@ -95,7 +95,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 
     // Admin routes
-    Route::middleware(['role:admin'])->group(function () {
+    Route::middleware(['role:admin', 'verified'])->group(function () {
         Route::get('/admin/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/admin/slots/today', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'todaySlots'])->name('admin.slots.today');
         Route::get('/admin/barbers/pending', [\App\Http\Controllers\Admin\BarberApprovalController::class, 'pending'])->name('admin.barbers.pending');
@@ -107,6 +107,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/finances/monthly-revenue', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'getMonthlyRevenueData']);
         Route::get('/admin/finances/daily-revenue', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'getDailyRevenueData']);
         Route::get('/admin/finances/stats', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'getRevenueStats']);
+
+        // PDF Export Routes
+        Route::get('/admin/finances/export/full-report', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'exportFullReport']);
+        Route::get('/admin/finances/export/revenue', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'exportRevenueReport']);
+        Route::get('/admin/finances/export/monthly', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'exportMonthlyReport']);
+        Route::get('/admin/finances/export/daily', [\App\Http\Controllers\Admin\AdminFinanceController::class, 'exportDailyReport']);
         Route::get('/admin/bookings', function () {
             return Inertia::render('Admin/Bookings');
         })->name('admin.bookings');
@@ -146,6 +152,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/barbers/manage', function () {
             return Inertia::render('Admin/ManageBarbers');
         })->name('admin.barbers.manage');
+        Route::post('/admin/barber/add', [\App\Http\Controllers\Admin\AdminUserController::class, 'addBarber'])
+            ->name('admin.barber.add');
 
         // Transformation routes
         Route::post('/admin/transformations/{id}/approve', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'approveTransformation']);
@@ -153,7 +161,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Barber routes
-    Route::middleware(['auth', 'role:barber'])->group(function () {
+    Route::middleware(['auth', 'role:barber', 'verified'])->group(function () {
         Route::get('/barber/dashboard', [BarberDashboardController::class, 'index'])
             ->name('barber.dashboard');
         Route::post('/barber/toggle-availability', [BarberDashboardController::class, 'toggleAvailability'])
@@ -171,7 +179,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Customer routes
-    Route::middleware(['role:customer'])->group(function () {
+    Route::middleware(['role:customer', 'verified'])->group(function () {
         Route::get('/customer/dashboard', function () {
             return Inertia::render('Customer/Dashboard');
         })->name('customer.dashboard');
@@ -299,5 +307,19 @@ Route::get('/api/transformations/approved', [\App\Http\Controllers\Transformatio
 Route::get('/test-profile', function () {
     return view('test-profile');
 });
+
+// Test email verification route (remove this after testing)
+Route::get('/test-email-verification', function() {
+    if (auth()->check()) {
+        $user = auth()->user();
+        return response()->json([
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at,
+            'is_verified' => $user->hasVerifiedEmail(),
+        ]);
+    }
+    return response()->json(['error' => 'Not authenticated']);
+})->middleware('auth');
 
 require __DIR__.'/auth.php';

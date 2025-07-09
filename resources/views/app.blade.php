@@ -15,6 +15,9 @@
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
+        @if (!empty($page['props']['jsonLd']))
+            <script type="application/ld+json">{!! $page['props']['jsonLd'] !!}</script>
+        @endif
     </head>
     <body class="font-sans antialiased">
         @inertia

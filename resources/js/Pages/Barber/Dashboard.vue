@@ -290,7 +290,16 @@ const quickActions = [
 </script>
 
 <template>
-    <Head title="Barber Dashboard" />
+    <Head title="Barber Dashboard">
+      <meta name="description" content="Barber dashboard for Mickyes Coiffure. Manage your appointments, clients, and profile." />
+      <meta property="og:title" content="Barber Dashboard - Mickyes Coiffure" />
+      <meta property="og:description" content="Access your barber dashboard to manage appointments and clients at Mickyes Coiffure." />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://mickyes.com/barber/dashboard" />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Barber Dashboard - Mickyes Coiffure" />
+      <meta name="twitter:description" content="Barber dashboard for managing appointments and clients at Mickyes Coiffure." />
+    </Head>
 
     <SidebarLayout>
         <div class="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -507,7 +516,7 @@ const quickActions = [
                         <div class="bg-gradient-to-r from-gray-700 to-gray-800 px-6 py-8 text-center">
                             <img :src="$page.props.auth.user.profile_photo_url"
                                  class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-white shadow-lg"
-                                 alt="Profile" />
+                                 alt="$page.props.auth.user.name ? 'Profile photo of ' + $page.props.auth.user.name : 'Barber profile photo'" />
                             <h3 class="text-xl font-semibold text-white mb-1">{{ $page.props.auth.user.name }}</h3>
                             <p class="text-gray-300 text-sm">Professional Barber</p>
                             <div class="mt-4 flex justify-center space-x-4 text-sm text-gray-300">

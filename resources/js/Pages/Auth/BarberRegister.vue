@@ -136,6 +136,6 @@ const form = useForm({
 })
 
 const submit = () => {
-  form.post(route('barber.register'))
+  form.post(route('barber.register.submit'))
 }
 </script>

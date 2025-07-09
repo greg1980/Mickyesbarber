@@ -1,183 +1,322 @@
 <template>
     <Head title="My Bookings" />
     <SidebarLayout>
-        <div class="p-3 lg:p-6 bg-gray-50 min-h-screen">
-            <!-- Header -->
-            <div class="bg-white shadow border border-gray-300 rounded px-4 lg:px-6 py-3 lg:py-4 mb-4 lg:mb-6">
-                <h1 class="text-lg lg:text-xl font-bold flex items-center text-gray-600">
-                    <div class="h-6 w-6 lg:h-8 lg:w-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 lg:h-5 lg:w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                        </svg>
+        <div class="p-3 lg:p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+            <!-- Modern Header with Gradient -->
+            <div class="mb-6 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
+                <!-- Background Pattern -->
+                <div class="absolute inset-0 opacity-10">
+                    <svg class="w-full h-full" fill="currentColor" viewBox="0 0 100 100">
+                        <pattern id="booking-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <circle cx="2" cy="2" r="1"/>
+                            <circle cx="18" cy="18" r="1"/>
+                            <circle cx="10" cy="10" r="0.5"/>
+                        </pattern>
+                        <rect width="100" height="100" fill="url(#booking-pattern)"/>
+                    </svg>
+                </div>
+
+                <div class="relative z-10 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="h-16 w-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-4xl font-bold mb-2">My Bookings</h1>
+                            <p class="text-blue-100 text-lg">Manage your appointments and services</p>
+                        </div>
                     </div>
-                    My Bookings
-                </h1>
+
+                    <!-- Stats Badge -->
+                    <div class="hidden lg:block">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/30">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold">{{ totalBookings }}</div>
+                                <div class="text-xs text-blue-200 uppercase tracking-wider">Total Bookings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Success Message -->
-            <div v-if="successMessage" class="mb-4 px-3 lg:px-4 py-3 rounded bg-green-100 text-green-800 font-semibold text-center transition-opacity duration-500 text-sm lg:text-base">
-                {{ successMessage }}
-            </div>
-
-            <!-- Offline Message -->
-            <div v-if="!isOnline" class="mb-4 px-3 lg:px-4 py-3 rounded bg-yellow-100 text-yellow-800 font-semibold text-center text-sm lg:text-base">
-                You're currently offline. Viewing cached data.
-            </div>
-
-            <!-- View Mode Toggle -->
-            <div class="mb-4 flex gap-2">
-                <button
-                    class="px-3 lg:px-4 py-2 rounded border text-sm lg:text-base"
-                    :class="viewMode === 'upcoming' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-700 border-gray-300'"
-                    @click="viewMode = 'upcoming'"
-                >
-                    Upcoming
-                </button>
-                <button
-                    class="px-3 lg:px-4 py-2 rounded border text-sm lg:text-base"
-                    :class="viewMode === 'past' ? 'bg-gray-600 text-white border-gray-600' : 'bg-white text-gray-700 border-gray-300'"
-                    @click="viewMode = 'past'"
-                >
-                    Past & Cancelled
-                </button>
-            </div>
-
-            <!-- Mobile Card View (Hidden on larger screens) -->
-            <div class="lg:hidden space-y-3">
-                <div v-for="booking in (viewMode === 'upcoming' ? filteredBookings : pastOrCancelledBookings)" :key="booking.id" class="bg-white border border-gray-300 rounded-lg p-4 shadow-sm">
-                    <!-- Booking Header -->
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center">
-                            <img v-if="booking.barber?.user?.profile_photo" :src="`/storage/${booking.barber.user.profile_photo}`" alt="Barber" class="h-10 w-10 rounded-full mr-3" />
-                            <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 mr-3 text-sm font-bold">
-                                {{ booking.barber?.user?.name ? booking.barber.user.name.charAt(0) : 'N/A' }}
-                            </div>
-                            <div>
-                                <div class="font-medium text-gray-900 text-sm">
-                                    {{ booking.barber?.user?.name || 'N/A' }}
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    {{ formatDate(booking.booking_date) }}
-                                </div>
-                            </div>
-                        </div>
-                        <span class="px-2 py-1 text-xs leading-5 font-semibold rounded-full"
-                              :class="statusClass(booking.status)">
-                            {{ booking.status || 'N/A' }}
-                        </span>
-                    </div>
-
-                    <!-- Booking Details -->
-                    <div class="grid grid-cols-2 gap-3 text-xs text-gray-600 mb-3">
-                        <div>
-                            <span class="font-medium">Time:</span>
-                            <div>{{ formatTime(booking.booking_time) }}</div>
-                        </div>
-                        <div>
-                            <span class="font-medium">Price:</span>
-                            <div>£{{ formatPrice(booking.service_price) }}</div>
-                        </div>
-                        <div>
-                            <span class="font-medium">Deposit:</span>
-                            <div>£{{ formatPrice(booking.amount_paid) }}</div>
-                        </div>
-                        <div>
-                            <span class="font-medium">Balance:</span>
-                            <div>£{{ formatPrice(booking.service_price - booking.amount_paid) }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Mobile Actions -->
-                    <div v-if="booking.status !== 'cancelled' && !isPastBooking(booking)" class="flex flex-wrap gap-2">
-                        <button
-                            class="text-blue-600 hover:underline text-xs px-2 py-1 border border-blue-300 rounded"
-                            @click="openPaymentModal(booking)"
-                        >Pay</button>
-                        <button
-                            class="text-red-600 hover:underline text-xs px-2 py-1 border border-red-300 rounded"
-                            @click="handleCancel(booking)"
-                        >Cancel</button>
-                        <button
-                            class="text-green-600 hover:underline text-xs px-2 py-1 border border-green-300 rounded"
-                            @click="openRescheduleModal(booking)"
-                        >Reschedule</button>
-                    </div>
-                </div>
-
-                <!-- No bookings message for mobile -->
-                <div v-if="!(viewMode === 'upcoming' ? filteredBookings.length : pastOrCancelledBookings.length)" class="bg-white border border-gray-300 rounded-lg p-6 text-center text-gray-500 text-sm">
-                    No bookings found.
+            <div v-if="successMessage" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative" role="alert">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="font-medium">{{ successMessage }}</span>
                 </div>
             </div>
 
-            <!-- Desktop Table View (Hidden on mobile) -->
-            <div class="hidden lg:block overflow-x-auto bg-white shadow border border-gray-300 p-4 rounded-xl">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Barber</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deposit</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="booking in (viewMode === 'upcoming' ? filteredBookings : pastOrCancelledBookings)" :key="booking.id">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">
-                                    {{ formatDate(booking.booking_date) }}
+            <!-- Enhanced Search and Filter Bar -->
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <!-- Search Bar -->
+                    <div class="relative flex-1 max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input
+                            v-model="searchQuery"
+                            type="text"
+                            placeholder="Search by service, barber, or date..."
+                            class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        >
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Status Filter -->
+                        <select v-model="statusFilter" class="px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">All Status</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+
+                        <!-- Time Filter -->
+                        <select v-model="timeFilter" class="px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <option value="">All Time</option>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="past">Past</option>
+                            <option value="this-month">This Month</option>
+                            <option value="last-month">Last Month</option>
+                        </select>
+
+                        <!-- Clear Filters -->
+                        <button @click="clearFilters" class="px-4 py-3 text-gray-600 hover:text-gray-800 transition-colors duration-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats Row -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-2xl font-bold text-gray-900">{{ upcomingCount }}</p>
+                            <p class="text-sm text-gray-600">Upcoming</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-2xl font-bold text-gray-900">{{ pendingCount }}</p>
+                            <p class="text-sm text-gray-600">Pending</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-2xl font-bold text-gray-900">{{ completedCount }}</p>
+                            <p class="text-sm text-gray-600">Completed</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-2xl font-bold text-gray-900">£{{ totalSpent }}</p>
+                            <p class="text-sm text-gray-600">Total Spent</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modern Booking Cards -->
+            <div class="space-y-6">
+                <div v-for="booking in filteredBookings" :key="booking.id"
+                     class="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+
+                    <!-- Card Header -->
+                    <div class="relative p-4 sm:p-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                <!-- Service Icon -->
+                                <div class="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg mx-auto sm:mx-0">
+                                    <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h6m2 5.236V9a2 2 0 00-2-2H6a2 2 0 00-2 2v10.236"/>
+                                    </svg>
                                 </div>
-                                <div class="text-sm text-gray-500">
-                                    {{ formatTime(booking.booking_time) }}
+
+                                <div class="text-center sm:text-left">
+                                    <h3 class="text-lg sm:text-xl font-bold text-gray-900">
+                                        {{ booking.service?.name || 'Service N/A' }}
+                                    </h3>
+                                    <p class="text-gray-600 flex items-center gap-2 mt-1 justify-center sm:justify-start text-xs sm:text-base">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                                        </svg>
+                                        Booking #{{ booking.id }}
+                                    </p>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <img v-if="booking.barber?.user?.profile_photo" :src="`/storage/${booking.barber.user.profile_photo}`" alt="Barber" class="h-10 w-10 rounded-full mr-2" />
-                                    <div v-else class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">N/A</div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                      :class="statusClass(booking.status)">
-                                    {{ booking.status || 'N/A' }}
+                            </div>
+
+                            <!-- Status Badge and Price -->
+                            <div class="flex flex-col sm:items-end gap-2 sm:gap-3 text-center sm:text-right">
+                                <span :class="[
+                                    'px-3 py-1 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold rounded-full',
+                                    getStatusClass(booking.status)
+                                ]">
+                                    {{ getStatusText(booking.status) }}
                                 </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                £{{ formatPrice(booking.service_price) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                £{{ formatPrice(booking.amount_paid) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                £{{ formatPrice(booking.service_price - booking.amount_paid) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <button
-                                    v-if="booking.status !== 'cancelled' && !isPastBooking(booking)"
-                                    class="text-blue-600 hover:underline mr-2"
-                                    @click="openPaymentModal(booking)"
-                                >Pay</button>
-                                <button
-                                    v-if="booking.status !== 'cancelled' && !isPastBooking(booking)"
-                                    class="text-red-600 hover:underline mr-2"
-                                    @click="handleCancel(booking)"
-                                >Cancel</button>
-                                <button
-                                    v-if="booking.status !== 'cancelled' && !isPastBooking(booking)"
-                                    class="text-green-600 hover:underline"
-                                    @click="openRescheduleModal(booking)"
-                                >Reschedule</button>
-                            </td>
-                        </tr>
-                        <tr v-if="!(viewMode === 'upcoming' ? filteredBookings.length : pastOrCancelledBookings.length)">
-                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No bookings found.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                                <div>
+                                    <div class="text-lg sm:text-2xl font-bold text-gray-900">£{{ formatPrice(booking.service_price) }}</div>
+                                    <div class="text-xs sm:text-sm text-gray-500">Total Price</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Content -->
+                    <div class="p-4 sm:p-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                            <!-- Date & Time -->
+                            <div class="space-y-2 sm:space-y-3">
+                                <h4 class="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Schedule
+                                </h4>
+                                <div class="space-y-1 sm:space-y-2">
+                                    <div class="flex items-center gap-1 text-gray-700 text-xs sm:text-sm">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="font-medium">{{ formatDate(booking.booking_date) }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 text-gray-700 text-xs sm:text-sm">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span class="font-medium">{{ formatTime(booking.booking_time) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Barber Info -->
+                            <div class="space-y-2 sm:space-y-3">
+                                <h4 class="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    Your Barber
+                                </h4>
+                                <div class="flex items-center gap-2 sm:gap-3">
+                                    <img v-if="booking.barber?.user?.profile_photo"
+                                         :src="booking.barber.user.profile_photo"
+                                         :alt="'Barber photo for ' + (booking.barber.user.name || 'Barber')"
+                                         class="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border" />
+                                    <div v-else class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold shadow-md">
+                                        {{ booking.barber?.user?.name ? booking.barber.user.name.charAt(0).toUpperCase() : 'B' }}
+                                    </div>
+                                    <div>
+                                        <div class="font-medium text-gray-900 text-xs sm:text-base">
+                                            {{ booking.barber?.user?.name || 'Barber N/A' }}
+                                        </div>
+                                        <div class="text-xs sm:text-sm text-gray-500">Professional Barber</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Info -->
+                            <div class="space-y-2 sm:space-y-3">
+                                <h4 class="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                    </svg>
+                                    Payment
+                                </h4>
+                                <div class="flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm text-gray-700">
+                                    <div>
+                                        <span class="font-medium">Amount Paid:</span> £{{ formatPrice(booking.amount_paid) }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Balance:</span> £{{ formatPrice(booking.service_price - booking.amount_paid) }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Status:</span> {{ booking.payment_status || 'N/A' }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div v-if="booking.status !== 'cancelled' && !isPastBooking(booking)" class="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100">
+                            <div class="flex flex-col sm:flex-row flex-wrap gap-3">
+                                <button v-if="booking.service_price - booking.amount_paid > 0"
+                                        @click="openPaymentModal(booking)"
+                                        class="flex items-center gap-2 justify-center px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-base">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                    </svg>
+                                    Pay Balance (£{{ formatPrice(booking.service_price - booking.amount_paid) }})
+                                </button>
+
+                                <button @click="openRescheduleModal(booking)"
+                                        class="flex items-center gap-2 justify-center px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-base">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    Reschedule
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div v-if="filteredBookings.length === 0" class="text-center py-16">
+                    <div class="mx-auto h-24 w-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No bookings found</h3>
+                    <p class="text-gray-500 mb-6">{{ searchQuery || statusFilter || timeFilter ? 'Try adjusting your filters' : 'You haven\'t made any bookings yet' }}</p>
+                    <Link :href="route('booking.create')" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl font-medium transition-all duration-200 shadow-sm hover:shadow-md">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                        Book Your First Appointment
+                    </Link>
+                </div>
             </div>
 
             <!-- Payment Modal -->
@@ -188,60 +327,81 @@
                 @payment-success="handlePaymentSuccess"
             />
 
-            <!-- Reschedule Modal -->
-            <div v-if="showRescheduleModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-                <div class="bg-white rounded-lg shadow-lg p-4 lg:p-6 w-full max-w-sm lg:max-w-md mx-4 relative">
-                    <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl lg:text-2xl" @click="closeRescheduleModal">&times;</button>
-                    <h2 class="text-lg font-bold mb-4">Reschedule Booking</h2>
-
-                    <!-- Original Booking Details -->
-                    <div class="mb-4 p-3 bg-gray-50 rounded">
-                        <h3 class="text-sm font-medium text-gray-700 mb-2">Current Booking</h3>
-                        <p class="text-sm text-gray-600">Date: {{ formatDate(rescheduleBooking?.booking_date) }}</p>
-                        <p class="text-sm text-gray-600">Time: {{ formatTime(rescheduleBooking?.booking_time) }}</p>
-                    </div>
-
-                    <!-- New Date Selection -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Select New Date</label>
-                        <input type="date" v-model="rescheduleDate" :min="minDate" class="w-full border rounded px-3 py-2 text-sm lg:text-base" @change="fetchAvailableSlots" />
-                    </div>
-
-                    <!-- New Time Selection -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Select New Time</label>
-                        <div v-if="loadingSlots" class="text-gray-500 text-sm">Loading available slots...</div>
-                        <div v-else-if="availableSlots.length" class="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                            <button v-for="slot in availableSlots" :key="slot" @click="rescheduleTime = slot" :class="['px-2 py-1 rounded text-xs lg:text-sm', rescheduleTime === slot ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-800 hover:bg-green-100']">
-                                {{ slot }}
+            <!-- Enhanced Reschedule Modal -->
+            <div v-if="showRescheduleModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full relative">
+                    <!-- Modal Header -->
+                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-gray-100 rounded-t-2xl">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xl font-bold text-gray-900 flex items-center gap-3">
+                                <div class="h-10 w-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                Reschedule Booking
+                            </h3>
+                            <button @click="closeRescheduleModal" class="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                             </button>
                         </div>
-                        <div v-else class="text-gray-500 text-sm">No available slots for this date.</div>
                     </div>
 
-                    <!-- Barber Selection -->
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Barber</label>
-                        <select v-model="selectedBarberId" class="w-full border rounded px-3 py-2 text-sm lg:text-base" :disabled="loadingBarbers">
-                            <option v-for="barber in availableBarbers" :key="barber.id" :value="barber.id">
-                                {{ barber.user?.name || ('Barber #' + barber.id) }}
-                            </option>
-                        </select>
-                        <div v-if="loadingBarbers" class="text-gray-500 text-sm mt-1">Loading available barbers...</div>
-                    </div>
+                    <!-- Modal Content -->
+                    <div class="p-6">
+                        <!-- Current Booking Details -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-xl">
+                            <h4 class="font-medium text-gray-700 mb-2">Current Booking</h4>
+                            <div class="space-y-1 text-sm text-gray-600">
+                                <p><span class="font-medium">Service:</span> {{ rescheduleBooking?.service?.name || 'N/A' }}</p>
+                                <p><span class="font-medium">Date:</span> {{ formatDate(rescheduleBooking?.booking_date) }}</p>
+                                <p><span class="font-medium">Time:</span> {{ formatTime(rescheduleBooking?.booking_time) }}</p>
+                                <p><span class="font-medium">Barber:</span> {{ rescheduleBooking?.barber?.user?.name || 'N/A' }}</p>
+                            </div>
+                        </div>
 
-                    <!-- Modal Actions -->
-                    <div class="flex flex-col lg:flex-row justify-end space-y-2 lg:space-y-0 lg:space-x-2">
-                        <button class="px-4 py-2 text-gray-600 hover:text-gray-800 text-sm lg:text-base" @click="closeRescheduleModal">Cancel</button>
-                        <button
-                            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
-                            :disabled="!rescheduleDate || !rescheduleTime || submittingReschedule"
-                            @click="confirmReschedule"
-                        >
-                            {{ submittingReschedule ? 'Rescheduling...' : 'Reschedule' }}
-                        </button>
+                        <!-- New Date Selection -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select New Date</label>
+                            <input type="date" v-model="rescheduleDate" :min="minDate"
+                                   class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   @change="fetchAvailableSlots" />
+                        </div>
+
+                        <!-- New Time Selection -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select New Time</label>
+                            <div v-if="loadingSlots" class="text-gray-500 text-sm py-4 text-center">Loading available slots...</div>
+                            <div v-else-if="availableSlots.length" class="grid grid-cols-3 gap-2">
+                                <button v-for="slot in availableSlots" :key="slot"
+                                        @click="rescheduleTime = slot"
+                                        :class="[
+                                            'px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200',
+                                            rescheduleTime === slot
+                                                ? 'bg-blue-500 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-800 hover:bg-blue-100'
+                                        ]">
+                                    {{ slot }}
+                                </button>
+                            </div>
+                            <div v-else-if="rescheduleDate" class="text-gray-500 text-sm py-4 text-center">No available slots for this date.</div>
+                        </div>
+
+                        <!-- Modal Actions -->
+                        <div class="flex gap-3">
+                            <button @click="closeRescheduleModal"
+                                    class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200">
+                                Cancel
+                            </button>
+                            <button @click="confirmReschedule"
+                                    :disabled="!rescheduleDate || !rescheduleTime || rescheduling"
+                                    class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {{ rescheduling ? 'Rescheduling...' : 'Confirm Reschedule' }}
+                            </button>
+                        </div>
                     </div>
-                    <div v-if="rescheduleError" class="mt-2 text-red-600 text-sm text-center">{{ rescheduleError }}</div>
                 </div>
             </div>
         </div>
@@ -249,51 +409,171 @@
 </template>
 
 <script setup>
-import { Head } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import SidebarLayout from '@/Layouts/SidebarLayout.vue'
 import PaymentModal from '@/Components/PaymentModal.vue'
-import { ref, watch, computed, onMounted } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { ref, computed, onMounted } from 'vue'
 
 const props = defineProps({
-    bookings: {
-        type: Array,
-        default: () => []
-    }
+    bookings: Array,
+    successMessage: String
 })
 
+// Reactive data
 const showPaymentModal = ref(false)
 const selectedBooking = ref(null)
-const successMessage = ref("")
 const showRescheduleModal = ref(false)
-const rescheduleDate = ref("")
-const rescheduleTime = ref("")
+const rescheduleBooking = ref(null)
+const rescheduleDate = ref('')
+const rescheduleTime = ref('')
 const availableSlots = ref([])
-const loadingSlots = ref(false)
-const submittingReschedule = ref(false)
-const rescheduleError = ref("")
 const availableBarbers = ref([])
-const loadingBarbers = ref(false)
 const selectedBarberId = ref(null)
-const viewMode = ref('upcoming') // 'upcoming' or 'past'
-let rescheduleBooking = null
+const loadingSlots = ref(false)
+const loadingBarbers = ref(false)
+const rescheduling = ref(false)
+const rescheduleError = ref('')
 
-// Add new refs for offline state
-const isOnline = ref(navigator.onLine)
+// New filtering data
+const searchQuery = ref('')
+const statusFilter = ref('')
+const timeFilter = ref('')
+
+// Computed properties
+const totalBookings = computed(() => props.bookings.length)
+
+const upcomingCount = computed(() => {
+    return props.bookings.filter(booking =>
+        booking.status !== 'cancelled' &&
+        booking.status !== 'completed' &&
+        !isPastBooking(booking)
+    ).length
+})
+
+const pendingCount = computed(() => {
+    return props.bookings.filter(booking => booking.status === 'pending').length
+})
+
+const completedCount = computed(() => {
+    return props.bookings.filter(booking => booking.status === 'completed').length
+})
+
+const totalSpent = computed(() => {
+    return props.bookings
+        .filter(booking => booking.status === 'completed')
+        .reduce((total, booking) => total + parseFloat(booking.service_price || 0), 0)
+        .toFixed(2)
+})
 
 const filteredBookings = computed(() => {
-    const filtered = props.bookings.filter(
-    booking => booking.status !== 'cancelled' && !isPastBooking(booking)
-  )
-    console.log('Filtered Bookings:', filtered)
-    return filtered
+    let filtered = [...props.bookings]
+
+    // Search filter
+    if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        filtered = filtered.filter(booking =>
+            (booking.service?.name || '').toLowerCase().includes(query) ||
+            (booking.barber?.user?.name || '').toLowerCase().includes(query) ||
+            formatDate(booking.booking_date).toLowerCase().includes(query) ||
+            formatTime(booking.booking_time).toLowerCase().includes(query)
+        )
+    }
+
+    // Status filter
+    if (statusFilter.value) {
+        filtered = filtered.filter(booking => booking.status === statusFilter.value)
+    }
+
+    // Time filter
+    if (timeFilter.value) {
+        const now = new Date()
+        const currentMonth = now.getMonth()
+        const currentYear = now.getFullYear()
+
+        filtered = filtered.filter(booking => {
+            const bookingDate = new Date(booking.booking_date)
+
+            switch (timeFilter.value) {
+                case 'upcoming':
+                    return !isPastBooking(booking) && booking.status !== 'cancelled' && booking.status !== 'completed'
+                case 'past':
+                    return isPastBooking(booking) || booking.status === 'completed'
+                case 'this-month':
+                    return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear
+                case 'last-month':
+                    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
+                    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
+                    return bookingDate.getMonth() === lastMonth && bookingDate.getFullYear() === lastMonthYear
+                default:
+                    return true
+            }
+        })
+    }
+
+    // Sort by date - upcoming first, then most recent
+    return filtered.sort((a, b) => {
+        const dateA = new Date(a.booking_date + ' ' + a.booking_time)
+        const dateB = new Date(b.booking_date + ' ' + b.booking_time)
+        const now = new Date()
+
+        // If both are future or both are past, sort chronologically
+        if ((dateA >= now && dateB >= now) || (dateA < now && dateB < now)) {
+            return dateA - dateB
+        }
+
+        // Future dates come first
+        return dateA >= now ? -1 : 1
+    })
 })
 
-const pastOrCancelledBookings = computed(() => {
-    return props.bookings.filter(
-    booking => booking.status === 'cancelled' || isPastBooking(booking)
-  )
+const minDate = computed(() => {
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split('T')[0]
 })
+
+// Methods
+function clearFilters() {
+    searchQuery.value = ''
+    statusFilter.value = ''
+    timeFilter.value = ''
+}
+
+function getStatusClass(status) {
+    switch (status) {
+        case 'confirmed':
+            return 'bg-green-100 text-green-800'
+        case 'pending':
+            return 'bg-yellow-100 text-yellow-800'
+        case 'completed':
+            return 'bg-blue-100 text-blue-800'
+        case 'cancelled':
+            return 'bg-red-100 text-red-800'
+        default:
+            return 'bg-gray-100 text-gray-800'
+    }
+}
+
+function getStatusText(status) {
+    switch (status) {
+        case 'confirmed':
+            return 'Confirmed'
+        case 'pending':
+            return 'Pending'
+        case 'completed':
+            return 'Completed'
+        case 'cancelled':
+            return 'Cancelled'
+        default:
+            return 'Unknown'
+    }
+}
+
+function isPastBooking(booking) {
+    if (!booking.booking_date || !booking.booking_time) return false
+    const bookingDateTime = new Date(booking.booking_date + ' ' + booking.booking_time)
+    return bookingDateTime < new Date()
+}
 
 function openPaymentModal(booking) {
     selectedBooking.value = booking
@@ -302,274 +582,169 @@ function openPaymentModal(booking) {
 
 function handlePaymentSuccess() {
     showPaymentModal.value = false
-    // Optionally, refresh bookings or show a toast
+    // Optionally refresh page or show success message
+    window.location.reload()
+}
+
+function openRescheduleModal(booking) {
+    rescheduleBooking.value = booking
+    showRescheduleModal.value = true
+    rescheduleDate.value = ''
+    rescheduleTime.value = ''
+    availableSlots.value = []
+    rescheduleError.value = ''
+}
+
+function closeRescheduleModal() {
+    showRescheduleModal.value = false
+    rescheduleBooking.value = null
+    rescheduleDate.value = ''
+    rescheduleTime.value = ''
+    availableSlots.value = []
+    rescheduleError.value = ''
+    rescheduling.value = false
+}
+
+async function fetchAvailableSlots() {
+    if (!rescheduleDate.value || !rescheduleBooking.value) return
+
+    loadingSlots.value = true
+    availableSlots.value = []
+    rescheduleTime.value = ''
+
+    try {
+        const response = await fetch('/api/available-slots', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                date: rescheduleDate.value,
+                barber_id: rescheduleBooking.value.barber_id,
+                service_id: rescheduleBooking.value.service_id,
+                exclude_booking_id: rescheduleBooking.value.id
+            })
+        })
+
+        if (response.ok) {
+            const data = await response.json()
+            availableSlots.value = data.slots || []
+        } else {
+            console.error('Failed to fetch available slots')
+            availableSlots.value = []
+        }
+    } catch (error) {
+        console.error('Error fetching available slots:', error)
+        availableSlots.value = []
+    } finally {
+        loadingSlots.value = false
+    }
+}
+
+async function confirmReschedule() {
+    if (!rescheduleDate.value || !rescheduleTime.value || !rescheduleBooking.value) {
+        rescheduleError.value = 'Please select both date and time'
+        return
+    }
+
+    rescheduling.value = true
+    rescheduleError.value = ''
+
+    try {
+        const response = await fetch(`/booking/${rescheduleBooking.value.id}/reschedule`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                booking_date: rescheduleDate.value,
+                booking_time: rescheduleTime.value,
+                barber_id: rescheduleBooking.value.barber_id
+            })
+        })
+
+        if (response.ok) {
+            closeRescheduleModal()
+            window.location.reload() // Refresh to show updated booking
+        } else {
+            const errorData = await response.json()
+            rescheduleError.value = errorData.message || 'Failed to reschedule booking'
+        }
+    } catch (error) {
+        console.error('Error rescheduling booking:', error)
+        rescheduleError.value = 'Network error. Please try again.'
+    } finally {
+        rescheduling.value = false
+    }
+}
+
+async function handleCancel(booking) {
+    if (!confirm('Are you sure you want to cancel this booking?')) {
+        return
+    }
+
+    try {
+        const response = await fetch(`/booking/${booking.id}/cancel`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+
+        if (response.ok) {
+            window.location.reload() // Refresh to show updated booking status
+        } else {
+            const errorData = await response.json()
+            alert(errorData.message || 'Failed to cancel booking')
+        }
+    } catch (error) {
+        console.error('Error cancelling booking:', error)
+        alert('Network error. Please try again.')
+    }
 }
 
 function formatDate(date) {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString();
+    if (!date) return 'N/A'
+    const options = {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    }
+    return new Date(date).toLocaleDateString('en-US', options)
 }
+
 function formatTime(time) {
-    if (!time) return '';
+    if (!time) return ''
+
     // If time is in HH:mm:ss or HH:mm format
     if (/^\d{2}:\d{2}(:\d{2})?$/.test(time)) {
-        const [h, m] = time.split(':');
-        const hour = parseInt(h, 10);
-        const minute = m;
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-        return `${hour12}:${minute} ${ampm}`;
+        const [h, m] = time.split(':')
+        const hour = parseInt(h, 10)
+        const minute = m
+        const ampm = hour >= 12 ? 'PM' : 'AM'
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12
+        return `${hour12}:${minute} ${ampm}`
     }
+
     // If time is a full ISO string, extract time part in local time
     if (time.length > 5) {
-        const d = new Date(time);
-        const hour = d.getHours();
-        const minute = d.getMinutes().toString().padStart(2, '0');
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-        return `${hour12}:${minute} ${ampm}`;
+        const d = new Date(time)
+        const hour = d.getHours()
+        const minute = d.getMinutes().toString().padStart(2, '0')
+        const ampm = hour >= 12 ? 'PM' : 'AM'
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12
+        return `${hour12}:${minute} ${ampm}`
     }
-    return time;
+
+    return time
 }
+
 function formatPrice(value) {
-    const number = parseFloat(value) || 0;
-    return number.toFixed(2);
+    const number = parseFloat(value) || 0
+    return number.toFixed(2)
 }
-function statusClass(status) {
-    if (status === 'confirmed') return 'bg-green-100 text-green-800';
-    if (status === 'pending') return 'bg-yellow-100 text-yellow-800';
-    if (status === 'cancelled') return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-800';
-}
-function handleCancel(booking) {
-    const csrfToken = document.querySelector('meta[name=\'csrf-token\']')?.content;
-    console.log('CSRF Token:', csrfToken);
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
-    fetch(`/booking/${booking.id}/cancel`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to cancel booking');
-        successMessage.value = 'Booking cancelled successfully.';
-        setTimeout(() => {
-            successMessage.value = '';
-            window.location.reload();
-        }, 2500);
-    })
-    .catch(error => {
-        alert('Error: ' + error.message);
-    });
-}
-function openRescheduleModal(booking) {
-    showRescheduleModal.value = true
-    rescheduleBooking = booking
-    rescheduleDate.value = ""
-    rescheduleTime.value = ""
-    availableSlots.value = []
-    rescheduleError.value = ""
-    availableBarbers.value = []
-    selectedBarberId.value = booking.barber_id
-}
-function closeRescheduleModal() {
-    showRescheduleModal.value = false
-}
-const minDate = new Date().toISOString().split('T')[0]
-
-function fetchAvailableBarbers() {
-    if (!rescheduleDate.value || !rescheduleTime.value) return
-    loadingBarbers.value = true
-    availableBarbers.value = []
-    fetch(`/api/available-barbers?date=${rescheduleDate.value}&time=${rescheduleTime.value}`)
-        .then(async response => {
-            const data = await response.json()
-            if (!response.ok) throw new Error('Failed to fetch available barbers')
-            availableBarbers.value = data.barbers || []
-            // If the current barber is not available, reset selection
-            if (!availableBarbers.value.some(b => b.id === selectedBarberId.value)) {
-                selectedBarberId.value = availableBarbers.value.length ? availableBarbers.value[0].id : null
-            }
-        })
-        .catch(() => {
-            availableBarbers.value = []
-        })
-        .finally(() => {
-            loadingBarbers.value = false
-        })
-}
-
-function fetchAvailableSlots() {
-    if (!rescheduleBooking || !rescheduleDate.value) return
-    loadingSlots.value = true
-    availableSlots.value = []
-    rescheduleError.value = ""
-
-    // Check if selected date is in the past
-    const selectedDate = new Date(rescheduleDate.value)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    if (selectedDate < today) {
-        rescheduleError.value = "Cannot select a date in the past"
-        loadingSlots.value = false
-        return
-    }
-
-    fetch(`/api/available-slots?barber_id=${rescheduleBooking.barber_id}&date=${rescheduleDate.value}&booking_id=${rescheduleBooking.id}`)
-        .then(async response => {
-            const data = await response.json()
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch available slots')
-            }
-            availableSlots.value = data.available_slots || []
-            if (availableSlots.value.length === 0) {
-                rescheduleError.value = "No available slots for this date"
-            }
-        })
-        .catch(error => {
-            rescheduleError.value = error.message || "Failed to load available slots. Please try again."
-            console.error('Error fetching slots:', error)
-            availableSlots.value = []
-        })
-        .finally(() => {
-            loadingSlots.value = false
-        })
-}
-
-// Watch for date and time changes to fetch available barbers
-watch([rescheduleDate, rescheduleTime], ([date, time]) => {
-    if (date && time) fetchAvailableBarbers()
-})
-
-function confirmReschedule() {
-    if (!rescheduleBooking || !rescheduleDate.value || !rescheduleTime.value || !selectedBarberId.value) return
-
-    const newDateTime = new Date(`${rescheduleDate.value}T${rescheduleTime.value}`)
-    const oldDateTime = new Date(`${rescheduleBooking.booking_date}T${rescheduleBooking.booking_time}`)
-
-    if (newDateTime < new Date()) {
-        rescheduleError.value = "Cannot reschedule to a time in the past"
-        return
-    }
-
-    if (confirm(`Are you sure you want to reschedule your booking from ${formatDate(rescheduleBooking.booking_date)} at ${formatTime(rescheduleBooking.booking_time)} to ${formatDate(rescheduleDate.value)} at ${rescheduleTime.value}?`)) {
-        submitReschedule()
-    }
-}
-
-function submitReschedule() {
-    if (!rescheduleBooking || !rescheduleDate.value || !rescheduleTime.value || !selectedBarberId.value) return
-    submittingReschedule.value = true
-    rescheduleError.value = ""
-    const csrfToken = document.querySelector('meta[name=\'csrf-token\']')?.content
-
-    // Convert date to YYYY-MM-DD if needed
-    let dateToSend = rescheduleDate.value
-    if (dateToSend.includes('/')) {
-        // Convert DD/MM/YYYY to YYYY-MM-DD
-        const [day, month, year] = dateToSend.split('/')
-        dateToSend = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-    }
-
-    // Ensure time is only HH:MM
-    let timeToSend = rescheduleTime.value
-    if (timeToSend.length > 5) {
-        timeToSend = timeToSend.slice(-8, -6) + ':' + timeToSend.slice(-5, -3)
-        if (timeToSend.length !== 5) {
-            timeToSend = rescheduleTime.value.slice(-5)
-        }
-    }
-
-    fetch(`/booking/${rescheduleBooking.id}/reschedule`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-            booking_date: dateToSend,
-            booking_time: timeToSend,
-            barber_id: selectedBarberId.value
-        })
-    })
-    .then(async response => {
-        if (response.status === 409) {
-            const data = await response.json()
-            rescheduleError.value = data.error || 'This slot is already booked.'
-            submittingReschedule.value = false
-            return
-        }
-        if (!response.ok) throw new Error('Failed to reschedule booking')
-        successMessage.value = 'Booking rescheduled successfully.'
-        showRescheduleModal.value = false
-        setTimeout(() => {
-            successMessage.value = ''
-            window.location.reload()
-        }, 2500)
-    })
-    .catch(error => {
-        rescheduleError.value = error.message
-        submittingReschedule.value = false
-    })
-}
-
-function isPastBooking(booking) {
-    let dateStr = booking.booking_date.trim();
-    let timeStr = booking.booking_time.trim();
-
-    // If dateStr is ISO (e.g., 2023-05-21T00:00:00.000000Z), extract YYYY-MM-DD
-    if (dateStr.includes('T')) {
-        dateStr = dateStr.split('T')[0];
-    }
-    // If timeStr is ISO (e.g., 2025-05-23T11:00:00.000000Z), extract HH:MM
-    if (timeStr.includes('T')) {
-        timeStr = timeStr.split('T')[1].slice(0, 5);
-    } else if (timeStr.length > 5) {
-        timeStr = timeStr.slice(0, 5);
-    }
-
-    // Convert DD/MM/YYYY to YYYY-MM-DD if needed
-    if (dateStr.includes('/')) {
-        const [day, month, year] = dateStr.split('/');
-        dateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-
-    const [hours, minutes] = timeStr.split(':');
-    // Use Date.UTC to avoid timezone issues
-    const bookingDateTimeUTC = Date.UTC(
-        Number(dateStr.slice(0, 4)),
-        Number(dateStr.slice(5, 7)) - 1,
-        Number(dateStr.slice(8, 10)),
-        Number(hours),
-        Number(minutes)
-    );
-    const nowUTC = Date.now();
-    console.log('Booking:', booking.booking_date, booking.booking_time, 'Parsed UTC:', new Date(bookingDateTimeUTC), 'Now:', new Date(nowUTC));
-    if (isNaN(bookingDateTimeUTC)) {
-        console.warn('Invalid booking date/time:', booking.booking_date, booking.booking_time);
-        return false;
-    }
-    return bookingDateTimeUTC < nowUTC;
-}
-
-// Debug: Log the profile photo URL for each booking
-console.log('Bookings:', props.bookings.map(booking => booking.barber?.user?.profile_photo));
-
-const showSuccess = ref(false)
-onMounted(() => {
-  const params = new URLSearchParams(window.location.search)
-  if (params.get('success') === '1') {
-    showSuccess.value = true
-    window.history.replaceState({}, document.title, window.location.pathname)
-  }
-})
 </script>

@@ -117,6 +117,21 @@ class BookingController extends Controller
             Mail::to($booking->user->email)->send(new BookingCreated($booking));
         }
 
+        // If skipping payment, redirect with flash message
+        if ($validated['skip_payment'] ?? false) {
+            $user = User::find($user_id);
+            $role = $user->role ?? 'customer';
+            $successMsg = 'Booking created successfully for ' . $booking->booking_date . ' at ' . $booking->booking_time . '.';
+            if ($role === 'admin') {
+                return redirect('/admin/dashboard')->with('success', $successMsg);
+            } elseif ($role === 'barber') {
+                return redirect('/barber/appointments')->with('success', $successMsg);
+            } else {
+                return redirect('/customer/bookings')->with('success', $successMsg);
+            }
+        }
+
+        // Otherwise, return JSON for payment modal
         return response()->json([
             'message' => 'Booking created successfully',
             'booking' => $booking,

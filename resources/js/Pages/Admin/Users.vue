@@ -55,7 +55,7 @@
           </div>
           User List
         </h2>
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2 sm:gap-0">
           <div class="flex items-center space-x-2">
             <label for="entriesPerPage" class="text-sm text-gray-700">Show</label>
             <select id="entriesPerPage" v-model="entriesPerPage" class="border rounded px-2 py-1 text-sm w-20">
@@ -63,50 +63,51 @@
             </select>
             <span class="text-sm text-gray-700">entries per page</span>
           </div>
-          <div>
+          <div class="w-full sm:w-auto mt-2 sm:mt-0">
             <input
               type="text"
               v-model="search"
               @input="submitSearch"
               placeholder="Search by username..."
-              class="border rounded px-3 py-1 text-sm w-64"
+              class="border rounded px-3 py-1 text-sm w-full sm:w-64"
             />
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 mt-2 sm:mt-0">
             <button :class="['px-3 py-1 rounded', !showTrashed ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-700']" @click="setShowTrashed(false)">Active Users</button>
             <button :class="['px-3 py-1 rounded', showTrashed ? 'bg-gray-500 text-white' : 'bg-gray-200 text-gray-700']" @click="setShowTrashed(true)">Deactivated Users</button>
           </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto relative">
+          <div class="sm:hidden text-xs text-gray-400 mb-2">Swipe left/right to see more columns</div>
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Image</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date Registered</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Image</th>
+                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
+                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date Registered</th>
+                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Role</th>
+                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Status</th>
+                <th class="px-2 py-2 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Actions</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr v-for="user in users" :key="user.id">
-                <td class="px-4 py-3 whitespace-nowrap">
-                  <img :src="profilePhoto(user)" alt="User" class="w-10 h-10 rounded-full object-cover border" />
+                <td class="px-2 py-2 whitespace-nowrap">
+                  <img :src="profilePhoto(user)" :alt="user.name ? 'Profile photo of ' + user.name : 'User profile photo'" class="w-10 h-10 rounded-full object-cover border" />
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap font-medium text-gray-900">{{ user.name }}</td>
-                <td class="px-4 py-3 whitespace-nowrap text-gray-700">{{ user.created_at.slice(0, 10) }}</td>
-                <td class="px-4 py-3 whitespace-nowrap text-gray-700">{{ user.role }}</td>
-                <td class="px-4 py-3 whitespace-nowrap">
+                <td class="px-2 py-2 whitespace-nowrap font-medium text-gray-900">{{ user.name }}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-gray-700 hidden sm:table-cell">{{ user.created_at.slice(0, 10) }}</td>
+                <td class="px-2 py-2 whitespace-nowrap text-gray-700 hidden sm:table-cell">{{ user.role }}</td>
+                <td class="px-2 py-2 whitespace-nowrap hidden md:table-cell">
                   <span :class="statusClass(user)">{{ statusLabel(user) }}</span>
                 </td>
-                <td v-if="user.role !== 'admin'" class="px-4 py-3 whitespace-nowrap flex space-x-2">
+                <td v-if="user.role !== 'admin'" class="px-2 py-2 whitespace-nowrap flex space-x-2 hidden md:table-cell">
                   <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded" title="View" @click="openUserModal(user)"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
                   <button class="bg-gray-500 hover:bg-gray-600 text-white px-2 py-1 rounded" title="Edit" @click="openEditModal(user)" v-if="!showTrashed"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="#fff" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5h2m-1 0v14m-7-7h14" /></svg></button>
                   <button class="bg-orange-500 hover:bg-orange-600 text-white px-2 py-1 rounded" title="Deactivate" @click="deactivateUser(user)" v-if="!showTrashed"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                   <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded" title="Restore" @click="restoreUser(user)" v-if="showTrashed"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13l3 3L22 4" /></svg></button>
                 </td>
-                <td v-else class="px-4 py-3 whitespace-nowrap flex items-center text-gray-400 italic">Action Access Denied</td>
+                <td v-else class="px-2 py-2 whitespace-nowrap flex items-center text-gray-400 italic hidden md:table-cell">Action Access Denied</td>
               </tr>
             </tbody>
           </table>
@@ -138,7 +139,7 @@
           </svg>
         </button>
         <div class="flex flex-col items-center">
-          <img :src="profilePhoto(selectedUser)" alt="User" class="w-20 h-20 rounded-full object-cover border mb-4" />
+          <img :src="profilePhoto(selectedUser)" :alt="selectedUser.name ? 'Profile photo of ' + selectedUser.name : 'User profile photo'" class="w-20 h-20 rounded-full object-cover border mb-4" />
           <h3 class="text-xl font-bold mb-2 text-gray-600 flex items-center gap-2">
               <div class="h-6 w-6 bg-gray-100 rounded-full flex items-center justify-center">
                   <UserIcon class="w-4 h-4 text-gray-600" />
@@ -177,7 +178,7 @@
           </svg>
         </button>
         <div class="flex flex-col items-center">
-          <img :src="profilePhoto(editUser)" alt="User" class="w-20 h-20 rounded-full object-cover border mb-4" />
+          <img :src="profilePhoto(editUser)" :alt="editUser.name ? 'Profile photo of ' + editUser.name : 'User profile photo'" class="w-20 h-20 rounded-full object-cover border mb-4" />
           <h3 class="text-xl font-bold mb-4 text-gray-600 flex items-center gap-2">
               <div class="h-6 w-6 bg-orange-100 rounded-full flex items-center justify-center">
                   <PencilSquareIcon class="w-4 h-4 text-orange-600" />
@@ -238,9 +239,7 @@ const props = defineProps({
 })
 
 const users = computed(() => props.users.data)
-
-const entriesPerPage = ref(10)
-const currentPage = ref(1)
+const entriesPerPage = ref(props.users.per_page || 10)
 
 const search = ref(props.filters?.search || '')
 
@@ -281,18 +280,6 @@ function closeUserModal() {
   completedBookingsCount.value = null
   lastVisited.value = null
   upcomingBookingsCount.value = null
-}
-
-const totalPages = computed(() => Math.ceil(users.length / entriesPerPage.value))
-const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * entriesPerPage.value
-  return users.slice(start, start + entriesPerPage.value)
-})
-const startEntry = computed(() => (currentPage.value - 1) * entriesPerPage.value + 1)
-const endEntry = computed(() => Math.min(currentPage.value * entriesPerPage.value, users.length))
-
-function goToPage(url) {
-  if (url) router.visit(url)
 }
 
 function statusLabel(user) {
@@ -373,5 +360,9 @@ onMounted(async () => {
   const res = await axios.get('/admin/users/growth')
   userGrowthData.value = res.data
 })
+
+watch(entriesPerPage, (newVal) => {
+  router.get(route('admin.users.index'), { ...props.filters, perPage: newVal, search: search.value }, { preserveState: true, replace: true });
+});
 </script>
 

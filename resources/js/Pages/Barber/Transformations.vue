@@ -103,7 +103,7 @@ const reviewsCount = computed(() => props.transformations.data.filter(t => t.rev
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <img
-                  :src="t.user?.profile_photo_url || '/images/default-avatar.png'"
+                  :src="t.user?.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.user?.name || 'User')}&background=6B7280&color=fff&size=128`"
                   :alt="t.user?.name"
                   class="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
                 />
@@ -256,7 +256,7 @@ const reviewsCount = computed(() => props.transformations.data.filter(t => t.rev
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center space-x-3">
                   <img
-                    :src="t.user?.profile_photo_url || '/images/default-avatar.png'"
+                    :src="t.user?.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(t.user?.name || 'User')}&background=6B7280&color=fff&size=128`"
                     :alt="t.user?.name"
                     class="w-10 h-10 rounded-full object-cover ring-2 ring-gray-100"
                   />

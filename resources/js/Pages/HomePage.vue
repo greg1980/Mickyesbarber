@@ -1,5 +1,16 @@
 <template>
-  <Head title="Home" />
+  <Head title="Home">
+    <meta name="description" content="Mickyes Coiffure - Newcastle's trusted destination for professional barbering, haircuts, and grooming. Book your appointment online!" />
+    <meta property="og:title" content="Mickyes Coiffure - Professional Barbershop in Newcastle" />
+    <meta property="og:description" content="Mickyes Coiffure offers premium barbering, haircuts, and grooming services in Newcastle upon Tyne. See our transformations and book online!" />
+    <meta property="og:image" content="/images/hero/barber-hero.jpg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mickyes.com/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mickyes Coiffure - Professional Barbershop in Newcastle" />
+    <meta name="twitter:description" content="Book your next haircut or grooming session at Mickyes Coiffure, Newcastle's top barbershop." />
+    <meta name="twitter:image" content="/images/hero/barber-hero.jpg" />
+  </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
@@ -132,7 +143,7 @@
                   <!-- Before Image -->
                   <div class="w-1/2 relative">
                     <img :src="slides[currentSlide].before"
-                         :alt="'Before ' + slides[currentSlide].description"
+                         :alt="'Before transformation: ' + (slides[currentSlide].description || 'Barber transformation')"
                          class="absolute inset-0 w-full h-full object-cover rounded-l-lg"
                          @error="console.log('Error loading before image:', slides[currentSlide].before)">
                     <div class="absolute inset-0 bg-black bg-opacity-30">
@@ -142,7 +153,7 @@
                   <!-- After Image -->
                   <div class="w-1/2 relative">
                     <img :src="slides[currentSlide].after"
-                         :alt="'After ' + slides[currentSlide].description"
+                         :alt="'After transformation: ' + (slides[currentSlide].description || 'Barber transformation')"
                          class="absolute inset-0 w-full h-full object-cover rounded-r-lg"
                          @error="console.log('Error loading after image:', slides[currentSlide].after)">
                     <div class="absolute inset-0 bg-black bg-opacity-30">
@@ -329,7 +340,7 @@
 
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import Navigation from '@/Components/Navigation.vue'
 import Footer from '@/Components/Footer.vue'
 import {

@@ -1,5 +1,16 @@
 <template>
-  <Head title="Contact" />
+  <Head title="Contact">
+    <meta name="description" content="Contact Mickyes Coiffure for appointments, questions, or feedback. We're here to help you look your best in Newcastle!" />
+    <meta property="og:title" content="Contact Mickyes Coiffure - Newcastle Barbershop" />
+    <meta property="og:description" content="Get in touch with our team for bookings, questions, or customer support. Mickyes Coiffure, Newcastle's trusted barbershop." />
+    <meta property="og:image" content="/images/hero/pexels-photo-1813272.jpeg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mickyesbarbers.com/contact" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Contact Mickyes Coiffure - Newcastle Barbershop" />
+    <meta name="twitter:description" content="Contact us for appointments, questions, or feedback. We're here to help!" />
+    <meta name="twitter:image" content="/images/hero/pexels-photo-1813272.jpeg" />
+  </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
     <main>
