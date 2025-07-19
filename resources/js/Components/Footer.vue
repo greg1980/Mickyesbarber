@@ -51,14 +51,14 @@
             </li>
             <li class="flex items-center">
               <PhoneIcon class="h-6 w-6 text-green-500 flex-shrink-0" />
-              <a href="tel:+447852482489" class="ml-2 text-gray-400 hover:text-white transition-colors">
-                +44 7852 482489
+              <a href="tel:+447961572568" class="ml-2 text-gray-400 hover:text-white transition-colors">
+                +44 7961 572568
               </a>
             </li>
             <li class="flex items-center">
               <EnvelopeIcon class="h-6 w-6 text-green-500 flex-shrink-0" />
-              <a href="mailto:info@mickyescoiffure.com" class="ml-2 text-gray-400 hover:text-white transition-colors">
-                info@mickyescoiffure.com
+              <a href="mailto:info@mickyes.com" class="ml-2 text-gray-400 hover:text-white transition-colors">
+                info@mickyes.com
               </a>
             </li>
           </ul>

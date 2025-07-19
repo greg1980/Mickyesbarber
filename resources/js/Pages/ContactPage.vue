@@ -3,13 +3,13 @@
     <meta name="description" content="Contact Mickyes Coiffure for appointments, questions, or feedback. We're here to help you look your best in Newcastle!" />
     <meta property="og:title" content="Contact Mickyes Coiffure - Newcastle Barbershop" />
     <meta property="og:description" content="Get in touch with our team for bookings, questions, or customer support. Mickyes Coiffure, Newcastle's trusted barbershop." />
-    <meta property="og:image" content="/images/hero/pexels-photo-1813272.jpeg" />
+    <meta property="og:image" content="/images/hero/pexels-photo-1813272.webp" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mickyesbarbers.com/contact" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Contact Mickyes Coiffure - Newcastle Barbershop" />
     <meta name="twitter:description" content="Contact us for appointments, questions, or feedback. We're here to help!" />
-    <meta name="twitter:image" content="/images/hero/pexels-photo-1813272.jpeg" />
+    <meta name="twitter:image" content="/images/hero/pexels-photo-1813272.webp" />
   </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
@@ -18,11 +18,14 @@
       <section class="relative bg-white overflow-hidden h-[40vh] md:h-[45vh] lg:h-[50vh]">
         <div class="absolute inset-0">
           <div class="h-full w-full relative overflow-hidden">
-            <img
-              src="/images/hero/pexels-photo-1813272.jpeg"
-              alt="Contact Mickyes Coiffure"
-              class="w-full h-full object-cover object-center"
-            />
+            <picture>
+              <source srcset="/images/hero/pexels-photo-1813272.webp" type="image/webp" />
+              <img
+                src="/images/hero/pexels-photo-1813272.jpeg"
+                alt="Contact Mickyes Coiffure"
+                class="w-full h-full object-cover object-center"
+              />
+            </picture>
             <!-- Overlay -->
             <div class="absolute inset-0 bg-black bg-opacity-40"></div>
           </div>
@@ -132,8 +135,8 @@
                   <div class="ml-4">
                     <h3 class="text-lg font-medium text-gray-900">Phone</h3>
                     <p class="mt-1 text-gray-600">
-                      <a href="tel:+447852482489" class="hover:text-green-600 transition-colors">
-                        +44 7852 482489
+                      <a href="tel:+447961572568" class="hover:text-green-600 transition-colors">
+                        +44 7961 572568
                       </a>
                     </p>
                   </div>
@@ -147,8 +150,8 @@
                   <div class="ml-4">
                     <h3 class="text-lg font-medium text-gray-900">Email</h3>
                     <p class="mt-1 text-gray-600">
-                      <a href="mailto:info@mickyescoiffure.com" class="hover:text-orange-600 transition-colors">
-                        info@mickyescoiffure.com
+                      <a href="mailto:info@mickyes.com" class="hover:text-orange-600 transition-colors">
+                        info@mickyes.com
                       </a>
                     </p>
                   </div>

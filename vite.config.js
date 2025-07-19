@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.js',
+            input: ['resources/js/app.js'],
             refresh: true,
         }),
         vue({
@@ -17,9 +17,20 @@ export default defineConfig({
             },
         }),
     ],
-    server: {
-        proxy: {
-            '/api': 'http://localhost:8000',
+    resolve: {
+        alias: {
+            '@': '/resources/js',
         },
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['vue', '@inertiajs/vue3'],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 1000,
+        sourcemap: process.env.NODE_ENV !== 'production',
     },
 });

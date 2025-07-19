@@ -1,15 +1,15 @@
 <template>
-  <Head title="Home">
+  <Head title="Mickyes Coiffure - Professional Barbershop in Newcastle">
     <meta name="description" content="Mickyes Coiffure - Newcastle's trusted destination for professional barbering, haircuts, and grooming. Book your appointment online!" />
     <meta property="og:title" content="Mickyes Coiffure - Professional Barbershop in Newcastle" />
     <meta property="og:description" content="Mickyes Coiffure offers premium barbering, haircuts, and grooming services in Newcastle upon Tyne. See our transformations and book online!" />
-    <meta property="og:image" content="/images/hero/barber-hero.jpg" />
+    <meta property="og:image" content="/images/hero/barber-hero.webp" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mickyes.com/" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Mickyes Coiffure - Professional Barbershop in Newcastle" />
     <meta name="twitter:description" content="Book your next haircut or grooming session at Mickyes Coiffure, Newcastle's top barbershop." />
-    <meta name="twitter:image" content="/images/hero/barber-hero.jpg" />
+    <meta name="twitter:image" content="/images/hero/barber-hero.webp" />
   </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
@@ -18,10 +18,12 @@
       <section class="relative bg-white overflow-hidden h-[50vh] md:h-[65vh] lg:h-[75vh] xl:h-[80vh]">
         <div class="absolute inset-0">
           <div class="h-full w-full relative overflow-hidden">
-            <img
+            <OptimizedImage
               src="/images/hero/barber-hero.jpg"
+              webp-src="/images/hero/barber-hero.webp"
               alt="Barber Shop Background"
-              class="w-full h-full object-cover object-center sticky top-0 scale-100"
+              img-class="w-full h-full object-cover object-center sticky top-0 scale-100"
+              :lazy="false"
               style="object-position: center 40%;"
             />
             <!-- Overlay -->
@@ -114,11 +116,11 @@
                 </svg>
                 Book Your Appointment
               </Link>
-              <a href="tel:+1234567890" class="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+              <a href="tel:+447961572568" class="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                Call Now: (123) 456-7890
+                Call Now: +44 7961 572568
               </a>
             </div>
           </div>
@@ -142,20 +144,24 @@
                 <div class="flex h-full gap-4">
                   <!-- Before Image -->
                   <div class="w-1/2 relative">
-                    <img :src="slides[currentSlide].before"
-                         :alt="'Before transformation: ' + (slides[currentSlide].description || 'Barber transformation')"
-                         class="absolute inset-0 w-full h-full object-cover rounded-l-lg"
-                         @error="console.log('Error loading before image:', slides[currentSlide].before)">
+                    <OptimizedImage
+                      :src="slides[currentSlide].before"
+                      :alt="'Before transformation: ' + (slides[currentSlide].description || 'Barber transformation')"
+                      img-class="absolute inset-0 w-full h-full object-cover rounded-l-lg"
+                      @error="console.log('Error loading before image:', slides[currentSlide].before)"
+                    />
                     <div class="absolute inset-0 bg-black bg-opacity-30">
                       <span class="absolute top-4 left-4 text-white text-xl font-bold">Before</span>
                     </div>
                   </div>
                   <!-- After Image -->
                   <div class="w-1/2 relative">
-                    <img :src="slides[currentSlide].after"
-                         :alt="'After transformation: ' + (slides[currentSlide].description || 'Barber transformation')"
-                         class="absolute inset-0 w-full h-full object-cover rounded-r-lg"
-                         @error="console.log('Error loading after image:', slides[currentSlide].after)">
+                    <OptimizedImage
+                      :src="slides[currentSlide].after"
+                      :alt="'After transformation: ' + (slides[currentSlide].description || 'Barber transformation')"
+                      img-class="absolute inset-0 w-full h-full object-cover rounded-r-lg"
+                      @error="console.log('Error loading after image:', slides[currentSlide].after)"
+                    />
                     <div class="absolute inset-0 bg-black bg-opacity-30">
                       <span class="absolute top-4 right-4 text-white text-xl font-bold">After</span>
                     </div>
@@ -212,11 +218,12 @@
           <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
             <!-- Classic Cuts -->
             <div class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-              <div class="aspect-w-16 aspect-h-9">
-                <img
+              <div class="relative h-48 overflow-hidden">
+                <OptimizedImage
                   src="/images/services/classic-cut.jpg"
+                  webp-src="/images/services/classic-cut.webp"
                   alt="Classic Haircut Service"
-                  class="object-cover w-full h-48"
+                  img-class="object-cover w-full h-full absolute inset-0"
                 />
               </div>
               <div class="p-6">
@@ -232,11 +239,12 @@
 
             <!-- Kids Cuts -->
             <div class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-              <div class="aspect-w-16 aspect-h-9">
-                <img
+              <div class="relative h-48 overflow-hidden">
+                <OptimizedImage
                   src="/images/services/kids-cut.jpg"
+                  webp-src="/images/services/kids-cut.webp"
                   alt="Kids Haircut Service"
-                  class="object-cover w-full h-48"
+                  img-class="object-cover w-full h-full absolute inset-0"
                 />
               </div>
               <div class="p-6">
@@ -252,11 +260,12 @@
 
             <!-- Hair Coloring -->
             <div class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-              <div class="aspect-w-16 aspect-h-9">
-                <img
+              <div class="relative h-48 overflow-hidden">
+                <OptimizedImage
                   src="/images/services/hair-color.jpg"
+                  webp-src="/images/services/hair-color.webp"
                   alt="Hair Coloring Service"
-                  class="object-cover w-full h-48"
+                  img-class="object-cover w-full h-full absolute inset-0"
                 />
               </div>
               <div class="p-6">
@@ -272,12 +281,12 @@
 
             <!-- Beard Grooming -->
             <div class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-              <div class="aspect-w-16 aspect-h-9">
-                <img
+              <div class="relative h-48 overflow-hidden">
+                <OptimizedImage
                   src="/images/services/beard-grooming.jpg"
+                  webp-src="/images/services/beard-grooming.webp"
                   alt="Beard Grooming Service"
-                  class="object-cover w-full h-48 object-center"
-                  style="object-position: center center;"
+                  img-class="object-cover w-full h-full absolute inset-0"
                 />
               </div>
               <div class="p-6">
@@ -293,11 +302,12 @@
 
             <!-- Home Service -->
             <div class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-              <div class="aspect-w-16 aspect-h-9">
-                <img
+              <div class="relative h-48 overflow-hidden">
+                <OptimizedImage
                   src="/images/services/home-service.jpg"
+                  webp-src="/images/services/home-service.webp"
                   alt="Mobile Barber Service"
-                  class="object-cover w-full h-48"
+                  img-class="object-cover w-full h-full absolute inset-0"
                 />
               </div>
               <div class="p-6">
@@ -313,11 +323,12 @@
 
             <!-- Special Treatments -->
             <div class="bg-gray-50 rounded-lg overflow-hidden hover:shadow-lg transition duration-300">
-              <div class="aspect-w-16 aspect-h-9">
-                <img
+              <div class="relative h-48 overflow-hidden">
+                <OptimizedImage
                   src="/images/services/special-treatment.jpg"
+                  webp-src="/images/services/special-treatment.webp"
                   alt="Special Treatment Service"
-                  class="object-cover w-full h-48"
+                  img-class="object-cover w-full h-full absolute inset-0"
                 />
               </div>
               <div class="p-6">
@@ -343,6 +354,7 @@ import { Head, Link } from '@inertiajs/vue3'
 import { ref, onMounted, computed } from 'vue'
 import Navigation from '@/Components/Navigation.vue'
 import Footer from '@/Components/Footer.vue'
+import OptimizedImage from '@/Components/OptimizedImage.vue'
 import {
   ScissorsIcon,
   UserGroupIcon,
@@ -357,11 +369,13 @@ const slides = ref([])
 onMounted(async () => {
   try {
     const res = await axios.get('/api/transformations/approved')
-    slides.value = res.data.map(t => ({
-      before: t.before,
-      after: t.after,
-      description: t.style || 'Transformation',
-    }))
+    slides.value = res.data
+      .filter(t => t.before && t.after && t.before !== 'null' && t.after !== 'null')
+      .map(t => ({
+        before: t.before,
+        after: t.after,
+        description: t.style || 'Transformation',
+      }))
   } catch (error) {
     console.log('Failed to load transformations:', error)
     // Set some default slides or leave empty

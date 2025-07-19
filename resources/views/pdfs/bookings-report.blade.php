@@ -316,7 +316,7 @@
     <!-- Footer -->
     <div class="footer">
         <p>This report was generated automatically by Mickyes Coiffure booking system.</p>
-        <p>Newcastle upon Tyne • +44 7852 482489 • info@mickyescoiffure.com</p>
+        <p>Newcastle upon Tyne • +44 7961 572568 • info@mickyes.com</p>
     </div>
 </body>
 </html>

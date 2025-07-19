@@ -7,9 +7,17 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <!-- Performance optimizations -->
+        <link rel="dns-prefetch" href="//fonts.bunny.net">
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+
+        <!-- Preload critical fonts -->
+        <link rel="preload" href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+        <noscript><link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet"></noscript>
+
+        <!-- Meta tags for better SEO and performance -->
+        <meta name="description" content="Mickyes Coiffure - Professional barbering services in Newcastle. Book your appointment online for haircuts, beard grooming, and more.">
+        <meta name="theme-color" content="#16a34a">
 
         <!-- Scripts -->
         @routes

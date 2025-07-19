@@ -4,9 +4,10 @@ import { Link } from '@inertiajs/vue3';
 </script>
 
 <template>
+    <!-- TODO: For full support, refactor to use a <picture> element for background images. For now, use WebP if supported by browser, fallback to JPEG. -->
     <div
         class="flex min-h-screen flex-col items-center justify-center relative overflow-hidden"
-        style="background: url('/images/hero/barber-hero.jpg') center center / cover no-repeat;"
+        style="background: url('/images/hero/barber-hero.webp'), url('/images/hero/barber-hero.jpg') center center / cover no-repeat;"
     >
         <!-- White Blur Overlay -->
         <div class="absolute inset-0 bg-white/40 backdrop-blur-md z-0 pointer-events-none"></div>
