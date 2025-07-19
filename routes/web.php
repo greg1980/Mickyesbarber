@@ -178,17 +178,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/barber/bookings/export-pdf', [BarberDashboardController::class, 'exportBookingsPDF'])->name('barber.bookings.export-pdf');
     });
 
-    // Customer routes
-    Route::middleware(['role:customer', 'verified'])->group(function () {
-        Route::get('/customer/dashboard', function () {
-            return Inertia::render('Customer/Dashboard');
-        })->name('customer.dashboard');
 
-        // Booking routes
-        Route::get('/booking', function () {
-            return Inertia::render('Booking/Index');
-        })->name('booking.index');
-    });
 
     // These routes are moved to the authenticated section below
 
@@ -218,12 +208,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Customer routes
+// Shared booking routes (accessible to all authenticated users - customers, barbers, and admins)
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
-    Route::get('/customer/bookings', [CustomerDashboardController::class, 'bookings'])->name('customer.bookings');
-    Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
-
     // Booking routes (accessible to all authenticated users)
     Route::get('/booking/create', function () {
         $services = \App\Models\Service::where('is_active', true)
@@ -272,27 +258,38 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/available-barbers', [BookingController::class, 'getAvailableBarbers'])->name('api.available-barbers');
     Route::get('/api/available-slots', [BookingController::class, 'getAvailableSlots'])->name('api.available-slots');
     Route::get('/users/customers', [BookingController::class, 'getUsers'])->name('users.customers');
+});
 
-    // Barber routes
-    Route::middleware(['auth', 'role:barber'])->prefix('barber')->name('barber.')->group(function () {
-        Route::get('/dashboard', [BarberDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/appointments', [BarberDashboardController::class, 'appointments'])->name('appointments');
-        Route::patch('/appointments/{booking}/status', [BarberDashboardController::class, 'updateAppointmentStatus'])->name('appointments.status');
-        Route::post('/toggle-availability', [BarberDashboardController::class, 'toggleAvailability'])->name('availability.toggle');
-        Route::post('/update-schedule', [BarberDashboardController::class, 'updateSchedule'])->name('schedule.update');
-        Route::get('/monthly-ratings', [BarberStatsController::class, 'monthlyRatings']);
-        Route::get('/todays-appointments-count', [BarberStatsController::class, 'todaysAppointmentsCount']);
-        Route::get('/todays-completed-appointments-count', [BarberStatsController::class, 'todaysCompletedAppointmentsCount']);
-        Route::get('/monthly-completed-appointments-count', [BarberStatsController::class, 'monthlyCompletedAppointmentsCount']);
-        Route::get('/bookings', [BarberDashboardController::class, 'bookings'])->name('bookings');
-        Route::get('/transformations', [\App\Http\Controllers\Barber\BarberDashboardController::class, 'transformations'])->name('transformations');
-    });
+// Customer routes
+Route::middleware(['auth', 'role:customer', 'verified'])->group(function () {
+    Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
+    Route::get('/customer/bookings', [CustomerDashboardController::class, 'bookings'])->name('customer.bookings');
+    Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
 
+    // Customer stats routes
     Route::get('/customer/stats/monthly-spending', [CustomerStatsController::class, 'monthlySpending'])->name('customer.stats.monthly-spending');
     Route::get('/customer/stats/barber-booking-distribution', [CustomerStatsController::class, 'barberBookingDistribution'])->name('customer.stats.barber-booking-distribution');
     Route::get('/customer/stats/favourite-barber', [CustomerStatsController::class, 'favouriteBarber'])->name('customer.stats.favourite-barber');
     Route::get('/customer/stats/next-appointment', [CustomerStatsController::class, 'nextAppointment'])->name('customer.stats.next-appointment');
+});
 
+// Barber routes (moved outside customer group for proper access control)
+Route::middleware(['auth', 'role:barber', 'verified'])->prefix('barber')->name('barber.')->group(function () {
+    Route::get('/dashboard', [BarberDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/appointments', [BarberDashboardController::class, 'appointments'])->name('appointments');
+    Route::patch('/appointments/{booking}/status', [BarberDashboardController::class, 'updateAppointmentStatus'])->name('appointments.status');
+    Route::post('/toggle-availability', [BarberDashboardController::class, 'toggleAvailability'])->name('availability.toggle');
+    Route::post('/update-schedule', [BarberDashboardController::class, 'updateSchedule'])->name('schedule.update');
+    Route::get('/monthly-ratings', [BarberStatsController::class, 'monthlyRatings']);
+    Route::get('/todays-appointments-count', [BarberStatsController::class, 'todaysAppointmentsCount']);
+    Route::get('/todays-completed-appointments-count', [BarberStatsController::class, 'todaysCompletedAppointmentsCount']);
+    Route::get('/monthly-completed-appointments-count', [BarberStatsController::class, 'monthlyCompletedAppointmentsCount']);
+    Route::get('/bookings', [BarberDashboardController::class, 'bookings'])->name('bookings');
+    Route::get('/transformations', [\App\Http\Controllers\Barber\BarberDashboardController::class, 'transformations'])->name('transformations');
+});
+
+// Barber registration routes (accessible to all authenticated users)
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/register/barber', [BarberRegistrationController::class, 'create'])->name('barber.register');
     Route::post('/register/barber', [BarberRegistrationController::class, 'store'])->name('barber.register.store');
 });
