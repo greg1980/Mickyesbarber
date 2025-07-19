@@ -21,10 +21,16 @@
 
         <!-- Scripts -->
         @routes
-        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+        @if(app()->environment('production'))
+            @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+        @else
+            <!-- Use built assets in development to avoid Vue parsing issues -->
+            <script type="module" src="{{ asset('build/assets/app-Dcp7i6f-.js') }}"></script>
+            <link rel="stylesheet" href="{{ asset('build/assets/app-cDo54wD4.css') }}">
+        @endif
         @inertiaHead
         @if (!empty($page['props']['jsonLd']))
-            <script type="application/ld+json">{!! $page['props']['jsonLd'] !!}</script>
+            <script type="application/ld+json">{{ $page['props']['jsonLd'] }}</script>
         @endif
     </head>
     <body class="font-sans antialiased">

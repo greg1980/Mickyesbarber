@@ -347,7 +347,7 @@ const reviewsCount = computed(() => props.transformations.data.filter(t => t.rev
                       : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
                     !link.url ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
                   ]"
-                  v-html="link.label"
+                  {{ link.label }}
                 />
               </nav>
             </div>

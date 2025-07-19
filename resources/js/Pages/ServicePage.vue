@@ -3,13 +3,13 @@
     <meta name="description" content="Explore our full range of barbering services at Mickyes Coiffure. Haircuts, beard grooming, and more in Newcastle." />
     <meta property="og:title" content="Barbering Services - Mickyes Coiffure Newcastle" />
     <meta property="og:description" content="Discover professional haircuts, beard grooming, and premium barbering services at Mickyes Coiffure, Newcastle." />
-    <meta property="og:image" content="/images/hero/pexels-photo-2076932.jpeg" />
+    <meta property="og:image" content="/images/hero/pexels-photo-2076932.webp" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mickyesbarbers.com/services" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Barbering Services - Mickyes Coiffure Newcastle" />
     <meta name="twitter:description" content="See our full list of services and book your next appointment online." />
-    <meta name="twitter:image" content="/images/hero/pexels-photo-2076932.jpeg" />
+    <meta name="twitter:image" content="/images/hero/pexels-photo-2076932.webp" />
   </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
@@ -18,11 +18,14 @@
       <section class="relative bg-white overflow-hidden">
         <div class="absolute inset-0">
           <div class="h-full w-full relative overflow-hidden">
-            <img
-              src="/images/hero/pexels-photo-2076932.jpeg"
-              alt="Barber Services"
-              class="w-full h-full object-cover object-center"
-            />
+            <picture>
+              <source srcset="/images/hero/pexels-photo-2076932.webp" type="image/webp" />
+              <img
+                src="/images/hero/pexels-photo-2076932.jpeg"
+                alt="Barber Services"
+                class="w-full h-full object-cover object-center"
+              />
+            </picture>
             <!-- Overlay -->
             <div class="absolute inset-0 bg-black bg-opacity-40"></div>
           </div>

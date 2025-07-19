@@ -41,10 +41,16 @@ class BookingSeeder extends Seeder
             ]);
         }
 
-        // Clear existing bookings for clean test data (handle foreign key constraints)
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        Booking::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        // Clear existing bookings for clean test data (SQLite compatible)
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+            Booking::truncate();
+            DB::statement('PRAGMA foreign_keys = ON;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            Booking::truncate();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        }
 
         $bookings = [];
         $statuses = ['completed', 'confirmed', 'cancelled', 'pending'];

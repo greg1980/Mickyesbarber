@@ -243,7 +243,7 @@
                     :key="link.label"
                     :disabled="!link.url"
                     @click="goToPage(link.url)"
-                    v-html="link.label"
+                    {{ link.label }}
                     class="min-w-[44px] h-11 px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm"
                     :class="{
                       'bg-blue-600 text-white shadow-md hover:bg-blue-700': link.active,

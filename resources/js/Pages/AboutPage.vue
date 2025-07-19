@@ -3,13 +3,13 @@
     <meta name="description" content="Learn about Mickyes Coiffure, our story, our team, and our commitment to professional barbering in Newcastle." />
     <meta property="og:title" content="About Mickyes Coiffure - Our Story & Team" />
     <meta property="og:description" content="Discover the story behind Mickyes Coiffure, Newcastle's trusted barbershop. Meet our experienced team and see why customers love us!" />
-    <meta property="og:image" content="/images/hero/pexels-photo-2881253.jpeg" />
+    <meta property="og:image" content="/images/hero/pexels-photo-2881253.webp" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://mickyesbarbers.com/about" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="About Mickyes Coiffure - Our Story & Team" />
     <meta name="twitter:description" content="Learn about our barbershop, our team, and our passion for great haircuts in Newcastle." />
-    <meta name="twitter:image" content="/images/hero/pexels-photo-2881253.jpeg" />
+    <meta name="twitter:image" content="/images/hero/pexels-photo-2881253.webp" />
   </Head>
   <Navigation :auth="$page.props.auth" />
   <div class="min-h-screen bg-gray-50">
@@ -18,11 +18,14 @@
       <section class="relative bg-white overflow-hidden">
         <div class="absolute inset-0">
           <div class="h-full w-full relative overflow-hidden">
-            <img
-              src="/images/hero/pexels-photo-2881253.jpeg"
-                              alt="About Mickyes Coiffure"
-              class="w-full h-full object-cover object-center"
-            />
+            <picture>
+              <source srcset="/images/hero/pexels-photo-2881253.webp" type="image/webp" />
+              <img
+                src="/images/hero/pexels-photo-2881253.jpeg"
+                alt="About Mickyes Coiffure"
+                class="w-full h-full object-cover object-center"
+              />
+            </picture>
             <!-- Overlay -->
             <div class="absolute inset-0 bg-black bg-opacity-40"></div>
           </div>

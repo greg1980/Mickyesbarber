@@ -308,18 +308,47 @@ Route::get('/test-profile', function () {
     return view('test-profile');
 });
 
-// Test email verification route (remove this after testing)
-Route::get('/test-email-verification', function() {
-    if (auth()->check()) {
-        $user = auth()->user();
-        return response()->json([
-            'user_id' => $user->id,
-            'email' => $user->email,
-            'email_verified_at' => $user->email_verified_at,
-            'is_verified' => $user->hasVerifiedEmail(),
-        ]);
+// Debug email verification (temporary - remove after testing)
+Route::get('/debug-email-verification', function() {
+    if (!auth()->check()) {
+        return response()->json(['error' => 'Not authenticated']);
     }
-    return response()->json(['error' => 'Not authenticated']);
+
+    $user = auth()->user();
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.verify',
+        now()->addMinutes(60),
+        ['id' => $user->getKey(), 'hash' => sha1($user->getEmailForVerification())]
+    );
+
+    return response()->json([
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'email_verified_at' => $user->email_verified_at,
+        'is_verified' => $user->hasVerifiedEmail(),
+        'verification_url' => $verificationUrl,
+        'verification_route' => route('verification.verify', ['id' => $user->id, 'hash' => sha1($user->email)])
+    ]);
+})->middleware('auth');
+
+// Manual email verification test (temporary - remove after testing)
+Route::get('/test-manual-verification/{email}', function($email) {
+    $user = \App\Models\User::where('email', $email)->first();
+
+    if (!$user) {
+        return response()->json(['error' => 'User not found']);
+    }
+
+    $user->markEmailAsVerified();
+    $user->save();
+
+    return response()->json([
+        'success' => true,
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'email_verified_at' => $user->email_verified_at,
+        'is_verified' => $user->hasVerifiedEmail(),
+    ]);
 })->middleware('auth');
 
 require __DIR__.'/auth.php';

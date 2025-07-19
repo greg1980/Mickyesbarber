@@ -507,7 +507,7 @@
                   <component
                     :is="link.url ? 'a' : 'span'"
                     :href="link.url"
-                    v-html="link.label"
+                    {{ link.label }}
                     :class="[
                       'relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200',
                       link.active

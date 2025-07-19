@@ -87,11 +87,20 @@ class AdminUserController extends Controller
 
     public function userGrowth()
     {
-        $users = \App\Models\User::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
-            ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
-            ->groupBy('month')
-            ->orderBy('month')
-            ->get();
+        // Use SQLite-compatible date formatting
+        if (\DB::connection()->getDriverName() === 'sqlite') {
+            $users = \App\Models\User::selectRaw('strftime("%Y-%m", created_at) as month, COUNT(*) as count')
+                ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+        } else {
+            $users = \App\Models\User::selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
+                ->where('created_at', '>=', now()->subMonths(11)->startOfMonth())
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get();
+        }
 
         // Fill missing months with 0
         $months = collect();
@@ -135,7 +144,7 @@ class AdminUserController extends Controller
 
         // Bookings by day of week
         $byDay = $bookings->groupBy(function($b) {
-            return \Carbon\Carbon::parse($b->date)->format('D');
+            return \Carbon\Carbon::parse($b->booking_date)->format('D');
         })->map->count();
 
         // Completed vs Cancelled
