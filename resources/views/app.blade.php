@@ -25,8 +25,8 @@
             @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @else
             <!-- Use built assets in development to avoid Vue parsing issues -->
-            <script type="module" src="{{ asset('build/assets/app-Dcp7i6f-.js') }}"></script>
-            <link rel="stylesheet" href="{{ asset('build/assets/app-cDo54wD4.css') }}">
+            <script type="module" src="{{ asset('build/assets/app-Diy00ZWJ.js') }}"></script>
+            <link rel="stylesheet" href="{{ asset('build/assets/app-DZCiARni.css') }}">
         @endif
         @inertiaHead
         @if (!empty($page['props']['jsonLd']))
