@@ -61,13 +61,25 @@ class BarberRegistrationController extends Controller
 
         $validated = $validator->validated();
 
-        Barber::create([
+        $barber = Barber::create([
             'user_id' => Auth::id(),
             'bio' => $validated['bio'],
             'years_of_experience' => $validated['years_of_experience'],
             'mobile_contact' => $validated['mobile_contact'],
             'is_approved' => null,
         ]);
+
+        // Notify admin(s) of new barber application
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            \App\Models\Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'system',
+                'title' => 'New Barber Application',
+                'message' => Auth::user()->name . ' has applied to become a barber.',
+                'data' => ['user_id' => Auth::id(), 'barber_id' => $barber->id],
+            ]);
+        }
 
         return redirect()->route('dashboard')->with('success', 'Your application has been submitted and is pending admin approval.');
     }

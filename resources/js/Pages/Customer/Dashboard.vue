@@ -188,7 +188,7 @@
                             <button @click="openBarberModal" class="inline-block px-4 lg:px-6 py-2 bg-gray-800 text-white rounded font-semibold hover:bg-gray-200 hover:text-gray-900 transition-all text-center mt-2 lg:mt-4 text-sm lg:text-base">Register as Barber</button>
                         </div>
                     </div>
-                    <BarberRegisterModal :show="showBarberModal" @close="closeBarberModal" @success="handleBarberSuccess" />
+                    <CustomerBarberRegisterModal :show="showBarberModal" :user="user" @close="closeBarberModal" @success="handleBarberSuccess" />
                 </div>
 
                 <!-- Right: Appointments -->
@@ -306,14 +306,16 @@
 </template>
 
 <script setup>
-import { Head, Link } from '@inertiajs/vue3'
+import { Head, Link, usePage } from '@inertiajs/vue3'
+
+const user = usePage().props.auth.user
 import SidebarLayout from '@/Layouts/SidebarLayout.vue'
-import { defineProps, ref, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Doughnut, Bar } from 'vue-chartjs'
 import { Chart, ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
 import axios from 'axios'
 import { ScissorsIcon, UserIcon, ChartPieIcon, CurrencyDollarIcon, CalendarIcon } from '@heroicons/vue/24/outline'
-import BarberRegisterModal from '@/Components/BarberRegisterModal.vue'
+import CustomerBarberRegisterModal from '@/Components/CustomerBarberRegisterModal.vue'
 
 Chart.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
