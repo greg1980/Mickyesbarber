@@ -140,6 +140,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/services/update-order', [\App\Http\Controllers\Admin\AdminServiceController::class, 'updateOrder']);
         Route::get('/admin/services-api/active', [\App\Http\Controllers\Admin\AdminServiceController::class, 'getActiveServices']);
 
+        // Business Hours Management Routes
+        Route::get('/admin/business-hours', [\App\Http\Controllers\Admin\AdminBusinessHoursController::class, 'index'])->name('admin.business-hours.index');
+        Route::get('/admin/business-hours/all', [\App\Http\Controllers\Admin\AdminBusinessHoursController::class, 'getAll'])->name('admin.business-hours.all');
+        Route::post('/admin/business-hours/update', [\App\Http\Controllers\Admin\AdminBusinessHoursController::class, 'update'])->name('admin.business-hours.update');
+        Route::post('/admin/business-hours/reset', [\App\Http\Controllers\Admin\AdminBusinessHoursController::class, 'resetToDefault'])->name('admin.business-hours.reset');
+
         // Barber approval routes
         Route::get('/admin/barber-approvals', [BarberApprovalController::class, 'index'])
             ->name('admin.barber.approvals');
@@ -300,6 +306,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // Public API routes (no authentication required)
 Route::get('/api/transformations/approved', [\App\Http\Controllers\TransformationController::class, 'getApprovedTransformations'])->name('api.transformations.approved');
+Route::get('/api/business-hours', [\App\Http\Controllers\Admin\AdminBusinessHoursController::class, 'getPublicHours'])->name('api.business-hours');
 
 Route::get('/test-profile', function () {
     return view('test-profile');

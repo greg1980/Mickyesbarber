@@ -165,13 +165,18 @@
                   <div class="ml-4">
                     <h3 class="text-lg font-medium text-gray-900">Opening Hours</h3>
                     <div class="mt-1 text-gray-600 space-y-1">
-                      <p class="flex justify-between"><span>Monday:</span> <span>10:00 am - 6:00 pm</span></p>
-                      <p class="flex justify-between"><span>Tuesday:</span> <span>10:00 am - 6:00 pm</span></p>
-                      <p class="flex justify-between"><span>Wednesday:</span> <span>10:00 am - 6:00 pm</span></p>
-                      <p class="flex justify-between"><span>Thursday:</span> <span>10:00 am - 6:00 pm</span></p>
-                      <p class="flex justify-between"><span>Friday:</span> <span>10:00 am - 7:00 pm</span></p>
-                      <p class="flex justify-between"><span>Saturday:</span> <span>10:00 am - 7:00 pm</span></p>
-                      <p class="flex justify-between"><span>Sunday:</span> <span class="text-red-500 font-medium">Closed</span></p>
+                      <div v-for="hour in businessHours" :key="hour.day" class="flex justify-between">
+                        <span>{{ hour.day }}:</span>
+                        <span :class="hour.is_closed ? 'text-red-500 font-medium' : ''">
+                          {{ hour.hours }}
+                        </span>
+                      </div>
+                      <div v-if="loadingHours" class="flex justify-center py-2">
+                        <svg class="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -247,6 +252,9 @@ const form = ref({
   processing: false
 })
 
+const businessHours = ref([])
+const loadingHours = ref(true)
+
 const submitForm = () => {
   form.value.processing = true
   // Handle form submission here
@@ -262,4 +270,31 @@ const submitForm = () => {
     }
   }, 1000)
 }
+
+// Fetch business hours from API
+const fetchBusinessHours = async () => {
+  try {
+    loadingHours.value = true
+    const response = await fetch('/api/business-hours')
+    const data = await response.json()
+    businessHours.value = data.businessHours
+  } catch (error) {
+    console.error('Failed to fetch business hours:', error)
+    // Fallback to default hours if API fails
+    businessHours.value = [
+      { day: 'Monday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Tuesday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Wednesday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Thursday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Friday', hours: '10:00 am - 7:00 pm', is_closed: false },
+      { day: 'Saturday', hours: '10:00 am - 7:00 pm', is_closed: false },
+      { day: 'Sunday', hours: 'Closed', is_closed: true }
+    ]
+  } finally {
+    loadingHours.value = false
+  }
+}
+
+// Fetch business hours on component mount
+fetchBusinessHours()
 </script>

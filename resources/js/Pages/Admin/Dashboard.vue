@@ -69,6 +69,10 @@
                             <ScissorsIcon class="w-5 h-5" />
                             <span class="text-sm font-medium">Manage Services</span>
                         </a>
+                        <a :href="route('admin.business-hours.index')" class="flex items-center space-x-2 px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-indigo-200">
+                            <ClockIcon class="w-5 h-5" />
+                            <span class="text-sm font-medium">Business Hours</span>
+                        </a>
                     </div>
                 </div>
             </div>

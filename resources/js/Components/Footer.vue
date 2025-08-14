@@ -68,13 +68,18 @@
         <div class="space-y-4">
           <h3 class="text-lg font-semibold">Opening Hours</h3>
           <ul class="space-y-1 text-gray-400 text-sm">
-            <li class="flex justify-between"><span>Monday:</span> <span>10:00 am - 6:00 pm</span></li>
-            <li class="flex justify-between"><span>Tuesday:</span> <span>10:00 am - 6:00 pm</span></li>
-            <li class="flex justify-between"><span>Wednesday:</span> <span>10:00 am - 6:00 pm</span></li>
-            <li class="flex justify-between"><span>Thursday:</span> <span>10:00 am - 6:00 pm</span></li>
-            <li class="flex justify-between"><span>Friday:</span> <span>10:00 am - 7:00 pm</span></li>
-            <li class="flex justify-between"><span>Saturday:</span> <span>10:00 am - 7:00 pm</span></li>
-            <li class="flex justify-between"><span>Sunday:</span> <span class="text-red-400">Closed</span></li>
+            <li v-for="hour in businessHours" :key="hour.day" class="flex justify-between">
+              <span>{{ hour.day }}:</span>
+              <span :class="hour.is_closed ? 'text-red-400' : ''">
+                {{ hour.hours }}
+              </span>
+            </li>
+            <li v-if="loadingHours" class="flex justify-center py-2">
+              <svg class="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </li>
           </ul>
         </div>
       </div>
@@ -116,9 +121,41 @@
 
 <script setup>
 import { Link } from '@inertiajs/vue3'
+import { ref, onMounted } from 'vue'
 import {
   MapPinIcon,
   PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/vue/24/outline'
+
+const businessHours = ref([])
+const loadingHours = ref(true)
+
+// Fetch business hours from API
+const fetchBusinessHours = async () => {
+  try {
+    loadingHours.value = true
+    const response = await fetch('/api/business-hours')
+    const data = await response.json()
+    businessHours.value = data.businessHours
+  } catch (error) {
+    console.error('Failed to fetch business hours:', error)
+    // Fallback to default hours if API fails
+    businessHours.value = [
+      { day: 'Monday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Tuesday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Wednesday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Thursday', hours: '10:00 am - 6:00 pm', is_closed: false },
+      { day: 'Friday', hours: '10:00 am - 7:00 pm', is_closed: false },
+      { day: 'Saturday', hours: '10:00 am - 7:00 pm', is_closed: false },
+      { day: 'Sunday', hours: 'Closed', is_closed: true }
+    ]
+  } finally {
+    loadingHours.value = false
+  }
+}
+
+onMounted(() => {
+  fetchBusinessHours()
+})
 </script>

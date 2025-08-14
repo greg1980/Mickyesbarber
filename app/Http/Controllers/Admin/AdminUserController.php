@@ -122,7 +122,7 @@ class AdminUserController extends Controller
         return response()->json($months->values());
     }
 
-    public function barberSchedule($barberId)
+        public function barberSchedule($barberId)
     {
         $schedules = \App\Models\BarberAvailabilitySchedule::where('barber_id', $barberId)
             ->orderByRaw("FIELD(day_of_week, 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')")
