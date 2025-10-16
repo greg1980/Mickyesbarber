@@ -169,6 +169,13 @@ class AdminUserController extends Controller
             ->orderBy('booking_date', 'desc')
             ->paginate(10);
 
+        // Fix pagination HTML entities
+        if ($bookings->links()) {
+            foreach ($bookings->links() as $link) {
+                $link->label = str_replace(['&laquo;', '&raquo;'], ['«', '»'], $link->label);
+            }
+        }
+
         $bookings->getCollection()->transform(function($booking) {
             return [
                 'id' => $booking->id,

@@ -27,6 +27,13 @@ class AdminServiceController extends Controller
         }
 
         $services = $query->paginate(10)->withQueryString();
+
+        // Fix pagination HTML entities
+        if ($services->links()) {
+            foreach ($services->links() as $link) {
+                $link->label = str_replace(['&laquo;', '&raquo;'], ['«', '»'], $link->label);
+            }
+        }
         $totalServices = Service::count();
         $activeServices = Service::where('is_active', true)->count();
         $inactiveServices = Service::where('is_active', false)->count();

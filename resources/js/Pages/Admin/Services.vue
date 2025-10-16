@@ -216,8 +216,8 @@
                   'px-3 py-1 rounded border',
                   link.active ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700'
                 ]"
+                v-html="link.label"
               >
-                {{ link.label }}
               </Link>
               <span
                 v-else
@@ -225,8 +225,8 @@
                   'px-3 py-1 rounded border opacity-50 cursor-not-allowed',
                   'bg-gray-100 text-gray-700'
                 ]"
+                v-html="link.label"
               >
-                {{ link.label }}
               </span>
             </template>
           </div>

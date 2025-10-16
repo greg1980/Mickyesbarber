@@ -124,8 +124,8 @@
               :disabled="!link.url"
               @click="goToPage(link.url)"
               :class="['px-3 py-1 rounded border', link.active ? 'bg-gray-600 text-white' : 'bg-gray-100 text-gray-700', !link.url ? 'opacity-50 cursor-not-allowed' : '']"
+              v-html="link.label"
             >
-              {{ link.label }}
             </button>
           </div>
         </div>
